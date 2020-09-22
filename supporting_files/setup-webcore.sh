@@ -77,6 +77,9 @@ function webcore_init() {
         mkdir -p $PUBDIR
         chown -R www-data:staff $PUBDIR
 
+        # setup timezone
+        cp /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+        
         # siapkan database master
     fi
 
