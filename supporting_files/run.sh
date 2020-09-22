@@ -109,7 +109,7 @@ else
 fi
 
 echo "Setup WebCore"
-/setup-webcore.sh
+/setup-webcore.sh init
 
 echo "Starting supervisord"
 exec supervisord -n

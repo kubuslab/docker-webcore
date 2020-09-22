@@ -59,6 +59,7 @@ ADD supporting_files/create_mysql_users.sh /create_mysql_users.sh
 # Prepare for webcore configuration
 ADD supporting_files/setup-webcore.sh /setup-webcore.sh
 RUN chmod 755 /setup-webcore.sh
+RUN ln -s /setup-webcore.sh /usr/bin/webcorecli
 ADD supporting_files/php-webcore.ini /etc/php/7.4/cli/conf.d/92-webcore.ini
 ADD supporting_files/php-webcore.ini /etc/php/7.4/apache2/conf.d/92-webcore.ini
 

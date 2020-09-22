@@ -1,4 +1,5 @@
 #!/bin/bash
+VERSION=0.0.1.1
 ACTION=$1
 PACKAGE_BASE=kubuslab/webcore-php:dev-master
 PHP_BASE=https://gitlab.com/kubuslab/webcore-php.git
@@ -18,15 +19,20 @@ function read_input() {
 }
 
 function check_git() {
+    if [ -z "$ACTION" -o "$ACTION" == "init" ]; then
+        git config --global credential.helper store
+        return
+    fi
+
     local name=$(git config --global user.name)
     #local email=$(git config --global user.email)
     if [ -z "$name" ]; then
         echo "  -> Setup Git Account [GitLab].."
-        #name=$(read_input "Username GitLab: ")
-        #email=$(read_input "Email GitLab: ")
+        name=$(read_input "Username GitLab: ")
+        email=$(read_input "Email GitLab: ")
 
-        #git config --global user.name $name
-        #git config --global user.email $email
+        git config --global user.name $name
+        git config --global user.email $email
         git config --global credential.helper store
     fi
 }
@@ -34,6 +40,16 @@ function check_git() {
 function webcore_init() {
     if [ "$ACTION" == "update-lib" ]; then
         rm -f /app/lib/.installed
+    elif [ "$ACTION" == "reset" ]; then
+        echo "Reset Semua Apps.."
+        echo "  -> Hapus Library WebCore.."
+        rm -rf /app/lib
+        for p in $(cat /app/lib/.projects 2>/dev/null); do
+            echo "  -> Hapus project $p.."
+            rm -rf /app/$p
+        done
+        echo "..OK"
+        return
     elif [ -f /app/lib/.installed ]; then
         return
     fi
@@ -46,8 +62,6 @@ function webcore_init() {
     else
         check_git
 
-        ln -svf /setup-webcore.sh /usr/bin/webcorecli
-
         echo "  -> Setup Environment.."
         # siapkan folder lib
         mkdir -p /app/lib/webcore-php
@@ -59,11 +73,6 @@ function webcore_init() {
         # perbaiki file 92-webcore.ini
         sed -i 's/;;extension/extension/g' /etc/php/7.4/cli/conf.d/92-webcore.ini
         sed -i 's/;;extension/extension/g' /etc/php/7.4/apache2/conf.d/92-webcore.ini
-
-        # siapkan library webcore.so
-        #extdir=$(php -i|grep extension_dir|awk '{print $3}')
-        #cp ext/7.4/webcore.so $extdir/
-        #etcdir=$(php -i|grep 'Scan'|awk 'BEGIN { FS = "=>" } ; {print $2}')
 
         # buat directory logging
         mkdir -p $LOGDIR
@@ -79,8 +88,6 @@ function webcore_init() {
 
         # setup timezone
         cp /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
-        
-        # siapkan database master
     fi
 
     touch /app/lib/.installed
@@ -134,6 +141,8 @@ function webcore_project() {
         echo "  -> Siapkan directory log di $LOGDIR/$nama .."
         mkdir -p $LOGDIR/$nama
         chown -R www-data:staff $LOGDIR/$nama
+
+        echo $project >> /app/lib/.projects
     fi
 
     #mkdir -p application/config/domains/localhost
@@ -291,7 +300,7 @@ function webcore_db() {
 }
 
 function webcore_help() {
-    echo -e "WebCore Project CLI\nUSAGE:\n  webcorecli <command> [options1 option2 ...]\n"
+    echo -e "WebCore Project CLI versi $VERSION\nUSAGE:\n  webcorecli <command> [options1 option2 ...]\n"
     echo -e "Options:\n    webcorecli project <nama-project>\n\tBuat atau update project\n"
     echo -e "    webcorecli config <nama-project>\n\tBuat atau update config di project tertentu\n"
     echo -e "    webcorecli db <nama-project> <nama-db> <username-db> <password-db> <file-sql-data>\n\tBuat database, user dan password untuk project menggunakan file sql\n"
