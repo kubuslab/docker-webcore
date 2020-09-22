@@ -4,3 +4,4 @@ innodb_flush_method=O_DSYNC
 innodb-use-native-aio=0
 log_bin=ON
 bind-address=0.0.0.0
+sql_mode="ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
