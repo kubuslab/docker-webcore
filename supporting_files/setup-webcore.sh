@@ -302,7 +302,7 @@ function webcore_db() {
 function webcore_help() {
     echo -e "WebCore Project CLI versi $VERSION\nUSAGE:\n  webcorecli <command> [options1 option2 ...]\n"
     echo -e "Options:\n    webcorecli project <nama-project>\n\tBuat project baru\n"
-    echo -e "    webcorecli project <nama-project> update\n\Update project tertentu\n"
+    echo -e "    webcorecli project <nama-project> update\n\tUpdate project tertentu\n"
     echo -e "    webcorecli config <nama-project>\n\tBuat atau update config di project tertentu\n"
     echo -e "    webcorecli db <nama-project> <nama-db> <username-db> <password-db> <file-sql-data>\n\tBuat database, user dan password untuk project menggunakan file sql\n"
     echo -e "    webcorecli theme <nama-project> <nama-theme>\n\tBuat atau update theme di project tertentu\n"
