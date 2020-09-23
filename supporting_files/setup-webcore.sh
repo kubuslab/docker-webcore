@@ -45,8 +45,10 @@ function webcore_init() {
         echo "  -> Hapus Library WebCore.."
         rm -rf /app/lib
         for p in $(cat /app/lib/.projects 2>/dev/null); do
-            echo "  -> Hapus project $p.."
-            rm -rf /app/$p
+            ## PERINGATAN!:
+            ## JANGAN LAKUKAN INI, BAHAYA!! MODULES YANG BELUM DISIMPAN BISA TERHAPUS 
+            #echo "  -> Hapus project $p.."
+            #rm -rf /app/$p
         done
         echo "..OK"
         return
@@ -94,7 +96,7 @@ function webcore_init() {
 }
 
 function webcore_project() {
-    local nama=$1 aksi=$2 update=0
+    local nama=$1 aksi=$2 aksi2=$3 update=0 all=0
     local basedir=/app/$nama
 
     if [ -z "$nama" ]; then
@@ -106,6 +108,7 @@ function webcore_project() {
     if [ -d $basedir ]; then
         if [ "$aksi" == "update" ]; then
             update=1
+            [ "$aksi2" == "all" ] && all=1
         elif [ -z "$aksi" ]; then
             echo "Periksa project $nama ... OK"
             return
@@ -122,9 +125,21 @@ function webcore_project() {
         echo "  -> Update paket library utama.."
         composer update $PACKAGE_BASE
 
-        echo "  -> Update resource theme default.."
+        echo "  -> Update config 127.0.0.1 .."
+        local confdir=$basedir/application/config/domains/127.0.0.1
+        cd $confdir
+        git pull
+
+        echo "  -> Update theme default.."
         cd $basedir/resources
         git pull
+
+        if [ $all -eq 1 ]; then
+            for t in $(cat /app/lib/.themes 2>/dev/null); do
+                echo "  -> Update theme $t .."
+                webcore_theme $nama $t
+            done
+        fi
     elif [ $update -eq 0 ]; then
         mkdir -p $basedir
         cd $basedir
@@ -183,6 +198,8 @@ function webcore_module() {
 
         git clone $url .
 
+        echo $module >> /app/lib/.modules
+
         echo "..OK"
     fi
 }
@@ -231,6 +248,9 @@ function webcore_theme() {
         mkdir -p $resdir
         cd $resdir
         git clone https://gitlab.com/webcore/res-$theme.git .
+
+        echo $theme >> /app/lib/.themes
+
         echo "..OK"
     fi
 }
@@ -303,6 +323,8 @@ function webcore_help() {
     echo -e "WebCore Project CLI versi $VERSION\nUSAGE:\n  webcorecli <command> [options1 option2 ...]\n"
     echo -e "Options:\n    webcorecli project <nama-project>\n\tBuat project baru\n"
     echo -e "    webcorecli project <nama-project> update\n\tUpdate project tertentu\n"
+    echo -e "    webcorecli project <nama-project> update all\n\tUpdate project tertentu beserta config dan themenya\n"
+    echo -e "    webcorecli reset\n\tReset / hapus folder /app/lib\n"
     echo -e "    webcorecli config <nama-project>\n\tBuat atau update config di project tertentu\n"
     echo -e "    webcorecli db <nama-project> <nama-db> <username-db> <password-db> <file-sql-data>\n\tBuat database, user dan password untuk project menggunakan file sql\n"
     echo -e "    webcorecli theme <nama-project> <nama-theme>\n\tBuat atau update theme di project tertentu\n"
