@@ -44,12 +44,12 @@ function webcore_init() {
         echo "Reset Semua Apps.."
         echo "  -> Hapus Library WebCore.."
         rm -rf /app/lib
-        for p in $(cat /app/lib/.projects 2>/dev/null); do
+        #for p in $(cat /app/lib/.projects 2>/dev/null); do
             ## PERINGATAN!:
             ## JANGAN LAKUKAN INI, BAHAYA!! MODULES YANG BELUM DISIMPAN BISA TERHAPUS 
             #echo "  -> Hapus project $p.."
             #rm -rf /app/$p
-        done
+        #done
         echo "..OK"
         return
     elif [ -f /app/lib/.installed ]; then
