@@ -135,7 +135,7 @@ function webcore_project() {
         git pull
 
         if [ $all -eq 1 ]; then
-            for t in $(cat /app/lib/.themes 2>/dev/null); do
+            for t in $(cat /app/lib/.$nama.themes 2>/dev/null); do
                 echo "  -> Update theme $t .."
                 webcore_theme $nama $t
             done
@@ -198,7 +198,7 @@ function webcore_module() {
 
         git clone $url .
 
-        echo $module >> /app/lib/.modules
+        echo $module >> /app/lib/.$project.modules
 
         echo "..OK"
     fi
@@ -249,7 +249,7 @@ function webcore_theme() {
         cd $resdir
         git clone https://gitlab.com/webcore/res-$theme.git .
 
-        echo $theme >> /app/lib/.themes
+        echo  $theme >> /app/lib/.$project.themes
 
         echo "..OK"
     fi
