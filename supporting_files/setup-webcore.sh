@@ -333,7 +333,7 @@ function webcore_db() {
 function webcore_remote() {
     local subaction=$1 project=$2 name=$3
 
-    if [ "$subaction" != "lib"]; then
+    if [ "$subaction" != "lib" ]; then
         if [ -z "$project" ]; then
             echo -e "Nama project harus ditentukan\n\n"
             webcore_help
