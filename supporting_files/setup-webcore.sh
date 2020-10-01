@@ -42,8 +42,8 @@ function check_git() {
 function remote_update() {
     local url="$REMOTE_DEV?token=$REMOTE_TOKEN&$1"
     echo "Update remote development server -> $1 .. "
-    local output=$(curl $url | grep -v 'pre>')
-    echo $output
+    local output=$(curl -s $url | grep -v 'pre>')
+    echo -e "\n$output\n"
 }
 
 function webcore_init() {
@@ -378,7 +378,7 @@ function webcore_help() {
     echo -e "    webcorecli remote theme <nama-project> <nama-theme>\n\tUpdate remote theme di project tertentu\n"
     echo -e "    webcorecli remote module <nama-project> <nama-module>\n\tUpdate remote module di project tertentu\n"
     echo -e "    webcorecli remote module all <nama-module>\n\tUpdate remote module di semua project\n"
-    echo -e "    webcorecli remote lib <nama-module>\n\tUpdate remote composer kubuslab/webcore-php di semua project\n"
+    echo -e "    webcorecli remote lib\n\tUpdate remote composer kubuslab/webcore-php di semua project\n"
     exit
 }
 
