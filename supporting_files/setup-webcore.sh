@@ -5,6 +5,8 @@ PACKAGE_BASE=kubuslab/webcore-php:dev-master
 PHP_BASE=https://gitlab.com/kubuslab/webcore-php.git
 REPO_BASE=https://gitlab.com/kubuslab/webcore2-base.git
 THEME_RES=https://gitlab.com/webcore/res-clipone.git
+REMOTE_DEV=https://webcli.kubuslab.id/push.php
+REMOTE_TOKEN=eb803b076289d799b7fa2831c34f10fd
 LOGDIR=/var/log/webcore
 PRIVDIR=/webcore/private/files/
 PUBDIR=/webcore/public/files/
@@ -35,6 +37,13 @@ function check_git() {
         git config --global user.email $email
         git config --global credential.helper store
     fi
+}
+
+function remote_update() {
+    local url="$REMOTE_DEV?token=$REMOTE_TOKEN&$1"
+    echo "Update remote development server -> $1 .. "
+    local output=$(curl $url | grep -v 'pre>')
+    echo $output
 }
 
 function webcore_init() {
@@ -171,10 +180,12 @@ function webcore_module() {
     if [ -z "$module" ]; then
         echo -e "Nama module harus disebutkan\n"
         echo -e "USAGE:\n    webcorecli module <nama-project> <nama-module> <git-url-module>\n"
+        echo -e "USAGE:\n    webcorecli module <nama-project> <nama-module> update\n"
         exit
     elif [ -z "$url" ]; then
         echo -e "Git URL untuk module harus disebutkan\n"
         echo -e "USAGE:\n    webcorecli module <nama-project> <nama-module> <git-url-module>\n"
+        echo -e "USAGE:\n    webcorecli module <nama-project> <nama-module> update\n"
         exit
     fi
 
@@ -319,6 +330,38 @@ function webcore_db() {
     mysql -uroot $db < $file
 }
 
+function webcore_remote() {
+    local subaction=$1 project=$2 name=$3
+
+    if [ -z "$project" ]; then
+        echo -e "Nama project harus ditentukan\n\n"
+        webcore_help
+    fi
+
+    local params="action=${subaction}"
+    case "$subaction" in
+        config)
+            params="$params&project=${project}&name=$url"
+            ;;
+        theme)
+            params="$params&project=${project}&name=$name"
+            ;;
+        module)
+            params="$params&module=$name"
+            if [ "$project" != "all" ]; then
+                params="$params&project=${project}"
+            fi
+            ;;
+        lib)
+            params="action=vendor-lib&name=webcore-php"
+            ;;
+        *)
+            webcore_help
+    esac
+
+    remote_update "$params"
+}
+
 function webcore_help() {
     echo -e "WebCore Project CLI versi $VERSION\nUSAGE:\n  webcorecli <command> [options1 option2 ...]\n"
     echo -e "Options:\n    webcorecli project <nama-project>\n\tBuat project baru\n"
@@ -328,7 +371,14 @@ function webcore_help() {
     echo -e "    webcorecli config <nama-project>\n\tBuat atau update config di project tertentu\n"
     echo -e "    webcorecli db <nama-project> <nama-db> <username-db> <password-db> <file-sql-data>\n\tBuat database, user dan password untuk project menggunakan file sql\n"
     echo -e "    webcorecli theme <nama-project> <nama-theme>\n\tBuat atau update theme di project tertentu\n"
-    echo -e "    webcorecli module <nama-project> <nama-module> <git-url-module>\n\tBuat atau update module di project tertentu menggunakan git-url\n"
+    echo -e "    webcorecli module <nama-project> <nama-module> <git-url-module>\n\tBuat module di project tertentu menggunakan git-url\n"
+    echo -e "    webcorecli module <nama-project> <nama-module> update\n\tUpdate module di project tertentu\n"
+    echo -e "\nUpdate Remote Development:\n"
+    echo -e "    webcorecli remote config <nama-project>\n\tUpdate remote config di project tertentu\n"
+    echo -e "    webcorecli remote theme <nama-project> <nama-theme>\n\tUpdate remote theme di project tertentu\n"
+    echo -e "    webcorecli remote module <nama-project> <nama-module>\n\tUpdate remote module di project tertentu\n"
+    echo -e "    webcorecli remote module all <nama-module>\n\tUpdate remote module di semua project\n"
+    echo -e "    webcorecli remote lib <nama-module>\n\tUpdate remote composer kubuslab/webcore-php di semua project\n"
     exit
 }
 
@@ -349,6 +399,9 @@ case "$ACTION" in
         ;;
     db)
         webcore_db "$@"
+        ;;
+    remote)
+        webcore_remote "$@"
         ;;
     help)
         webcore_help
