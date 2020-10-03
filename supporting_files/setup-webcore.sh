@@ -1,6 +1,7 @@
 #!/bin/bash
-VERSION=0.0.1.1
+VERSION=0.0.1.2
 ACTION=$1
+UPGRADE_URL=https://raw.githubusercontent.com/kubuslab/docker-webcore/master/supporting_files/setup-webcore.sh
 PACKAGE_BASE=kubuslab/webcore-php:dev-master
 PHP_BASE=https://gitlab.com/kubuslab/webcore-php.git
 REPO_BASE=https://gitlab.com/kubuslab/webcore2-base.git
@@ -364,12 +365,62 @@ function webcore_remote() {
     remote_update "$params"
 }
 
+function webcore_vendorlib() {
+    local project=$1 lib=$2 ver=$3
+    [ -z "$lib" ] lib="kubuslab/webcore-php"
+
+    webcore_project $project
+    local vendordir=/app/$project/application/vendor/$lib
+    if [ -d $vendordir ]; then
+        echo "Project $project library vendor $lib ... OK"
+        echo "  -> Update library vendor .."
+        cd $vendordir
+        git pull
+    else
+        echo "Memuat library vendor di project $project ..."
+        [ -z "$ver" ] || lib="$lib:$ver"
+        cd /app/$project
+        composer require $lib
+    fi
+}
+
+function webcore_upgrade() {
+    local app=/setup-webcore.sh tmp=/tmp/setup-webcore.sh checksum=/app/lib/.checksum
+    # Upgrade diri sendiri
+
+    echo -e "Upgrade diri sendiri... "
+    curl -s -o $tmp $UPGRADE_URL
+    if [ -f $tmp ]; then
+        local cks=$(md5sum $tmp | cut -d ' ' -f1)
+        if [ -f $checksum ]; then
+            local cks2=$(cat $checksum)
+            if [ "$cks" != "$cks2" ]; then
+                echo $cks2 > $checksum
+            else
+                echo " ..BELUM ADA UPDATE"
+                return
+            fi
+        else
+            echo $cks > $checksum
+        fi
+    else
+        echo " ..GAGAL"
+        return
+    fi
+
+    . $tmp
+    echo -e "[VERSI: $VERSION]"
+    mv $tmp $app
+    echo " ..OK"
+}
+
 function webcore_help() {
     echo -e "WebCore Project CLI versi $VERSION\nUSAGE:\n  webcorecli <command> [options1 option2 ...]\n"
     echo -e "Options:\n    webcorecli project <nama-project>\n\tBuat project baru\n"
     echo -e "    webcorecli project <nama-project> update\n\tUpdate project tertentu\n"
     echo -e "    webcorecli project <nama-project> update all\n\tUpdate project tertentu beserta config dan themenya\n"
     echo -e "    webcorecli reset\n\tReset / hapus folder /app/lib\n"
+    echo -e "    webcorecli vendorlib <nama-project> <nama-composer-lib> <versi-composer-lib>\n\tInstall atau Update library vendor composer di project tertentu\n"
     echo -e "    webcorecli config <nama-project>\n\tBuat atau update config di project tertentu\n"
     echo -e "    webcorecli db <nama-project> <nama-db> <username-db> <password-db> <file-sql-data>\n\tBuat database, user dan password untuk project menggunakan file sql\n"
     echo -e "    webcorecli theme <nama-project> <nama-theme>\n\tBuat atau update theme di project tertentu\n"
@@ -381,6 +432,7 @@ function webcore_help() {
     echo -e "    webcorecli remote module <nama-project> <nama-module>\n\tUpdate remote module di project tertentu\n"
     echo -e "    webcorecli remote module all <nama-module>\n\tUpdate remote module di semua project\n"
     echo -e "    webcorecli remote lib\n\tUpdate remote composer kubuslab/webcore-php di semua project\n"
+    echo -e "\nPerintah Khusus:\n    webcorecli upgrade\n\tUpgrade versi WebCore CLI\n"
     exit
 }
 
@@ -402,8 +454,14 @@ case "$ACTION" in
     db)
         webcore_db "$@"
         ;;
+    vendorlib)
+        webcore_vendorlib "$@"
+        ;;
     remote)
         webcore_remote "$@"
+        ;;
+    upgrade)
+        webcore_upgrade "$@"
         ;;
     help)
         webcore_help
