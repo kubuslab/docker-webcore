@@ -408,7 +408,7 @@ function webcore_upgrade() {
         return
     fi
 
-    chmot +x $tmp
+    chmod +x $tmp
     . $tmp
     echo -e "[VERSI: $VERSION]"
     mv $tmp $app
