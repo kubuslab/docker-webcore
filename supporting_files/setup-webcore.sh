@@ -395,7 +395,7 @@ function webcore_upgrade() {
         if [ -f $checksum ]; then
             local cks2=$(cat $checksum)
             if [ "$cks" != "$cks2" ]; then
-                echo $cks2 > $checksum
+                echo $cks > $checksum
             else
                 echo " ..BELUM ADA UPDATE"
                 return
