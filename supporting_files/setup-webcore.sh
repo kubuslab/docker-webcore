@@ -1,6 +1,7 @@
 #!/bin/bash
 VERSION=0.0.1.2
 ACTION=$1
+APPDIR=/app
 UPGRADE_URL=https://raw.githubusercontent.com/kubuslab/docker-webcore/master/supporting_files/setup-webcore.sh
 PACKAGE_BASE=kubuslab/webcore-php:dev-master
 PHP_BASE=https://gitlab.com/kubuslab/webcore-php.git
@@ -49,25 +50,25 @@ function remote_update() {
 
 function webcore_init() {
     if [ "$ACTION" == "update-lib" ]; then
-        rm -f /app/lib/.installed
+        rm -f $APPDIR/lib/.installed
     elif [ "$ACTION" == "reset" ]; then
         echo "Reset Semua Apps.."
         echo "  -> Hapus Library WebCore.."
-        rm -rf /app/lib
-        #for p in $(cat /app/lib/.projects 2>/dev/null); do
+        rm -rf $APPDIR/lib
+        #for p in $(cat $APPDIR/lib/.projects 2>/dev/null); do
             ## PERINGATAN!:
             ## JANGAN LAKUKAN INI, BAHAYA!! MODULES YANG BELUM DISIMPAN BISA TERHAPUS 
             #echo "  -> Hapus project $p.."
-            #rm -rf /app/$p
+            #rm -rf $APPDIR/$p
         #done
         echo "..OK"
         return
-    elif [ -f /app/lib/.installed ]; then
+    elif [ -f $APPDIR/lib/.installed ]; then
         return
     fi
 
-    if [ -d /app/lib/webcore-php ]; then
-        cd /app/lib/webcore-php
+    if [ -d $APPDIR/lib/webcore-php ]; then
+        cd $APPDIR/lib/webcore-php
         echo "Update Library WebCore..."
         git pull
         echo "..OK"
@@ -76,8 +77,8 @@ function webcore_init() {
 
         echo "  -> Setup Environment.."
         # siapkan folder lib
-        mkdir -p /app/lib/webcore-php
-        cd /app/lib/webcore-php
+        mkdir -p $APPDIR/lib/webcore-php
+        cd $APPDIR/lib/webcore-php
 
         # download extension webcore.so
         git clone $PHP_BASE .
@@ -102,12 +103,12 @@ function webcore_init() {
         cp /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
     fi
 
-    touch /app/lib/.installed
+    touch $APPDIR/lib/.installed
 }
 
 function webcore_project() {
     local nama=$1 aksi=$2 aksi2=$3 update=0 all=0
-    local basedir=/app/$nama
+    local basedir=$APPDIR/$nama
 
     if [ -z "$nama" ]; then
         echo -e "Nama project harus disebutkan\n"
@@ -145,7 +146,7 @@ function webcore_project() {
         git pull
 
         if [ $all -eq 1 ]; then
-            for t in $(cat /app/lib/.$nama.themes 2>/dev/null); do
+            for t in $(cat $APPDIR/lib/.$nama.themes 2>/dev/null); do
                 echo "  -> Update theme $t .."
                 webcore_theme $nama $t
             done
@@ -167,7 +168,7 @@ function webcore_project() {
         mkdir -p $LOGDIR/$nama
         chown -R www-data:staff $LOGDIR/$nama
 
-        echo $project >> /app/lib/.projects
+        echo $project >> $APPDIR/lib/.projects
     fi
 
     #mkdir -p application/config/domains/localhost
@@ -192,7 +193,7 @@ function webcore_module() {
 
     webcore_project $project
 
-    local moddir=/app/$project/modules/$module
+    local moddir=$APPDIR/$project/modules/$module
     if [ -d $moddir ]; then
         echo "Project $project module $module ... OK"
         echo "  -> Update module $module.."
@@ -210,7 +211,7 @@ function webcore_module() {
 
         git clone $url .
 
-        echo $module >> /app/lib/.$project.modules
+        echo $module >> $APPDIR/lib/.$project.modules
 
         echo "..OK"
     fi
@@ -227,8 +228,8 @@ function webcore_theme() {
 
     webcore_project $project
 
-    local themedir=/app/$project/application/themes/$theme
-    local resdir=/app/$project/resources/$theme
+    local themedir=$APPDIR/$project/application/themes/$theme
+    local resdir=$APPDIR/$project/resources/$theme
     if [ -d $themedir ]; then
         echo "Project $project Theme::Engine $theme ... OK"
         echo "  -> Update Theme::Engine $theme.."
@@ -261,7 +262,7 @@ function webcore_theme() {
         cd $resdir
         git clone https://gitlab.com/webcore/res-$theme.git .
 
-        echo  $theme >> /app/lib/.$project.themes
+        echo  $theme >> $APPDIR/lib/.$project.themes
 
         echo "..OK"
     fi
@@ -272,7 +273,7 @@ function webcore_config() {
     
     webcore_project $project
 
-    local domaindir=/app/$project/application/config/domains
+    local domaindir=$APPDIR/$project/application/config/domains
     local confdir=$domaindir/127.0.0.1
     if [ -d $confdir ]; then
         echo "Project $project config untuk domain 127.0.0.1 ... OK"
@@ -384,7 +385,7 @@ function webcore_vendorlib() {
     fi
 
     webcore_project $project
-    local vendordir=/app/$project/application/vendor/$lib
+    local vendordir=$APPDIR/$project/application/vendor/$lib
     if [ -d $vendordir ]; then
         echo "Project $project library vendor $lib ... OK"
         echo "  -> Update library vendor .."
@@ -393,13 +394,13 @@ function webcore_vendorlib() {
     else
         echo "Memuat library vendor di project $project ..."
         [ -z "$ver" ] || lib="$lib:$ver"
-        cd /app/$project
+        cd $APPDIR/$project
         composer require $lib
     fi
 }
 
 function webcore_upgrade() {
-    local app=/setup-webcore.sh tmp=/tmp/setup-webcore.sh checksum=/app/lib/.checksum
+    local app=/setup-webcore.sh tmp=/tmp/setup-webcore.sh checksum=$APPDIR/lib/.checksum
     # Upgrade diri sendiri
 
     echo -e "Upgrade diri sendiri... "
@@ -434,7 +435,7 @@ function webcore_help() {
     echo -e "Options:\n    webcorecli project <nama-project>\n\tBuat project baru\n"
     echo -e "    webcorecli project <nama-project> update\n\tUpdate project tertentu\n"
     echo -e "    webcorecli project <nama-project> update all\n\tUpdate project tertentu beserta config dan themenya\n"
-    echo -e "    webcorecli reset\n\tReset / hapus folder /app/lib\n"
+    echo -e "    webcorecli reset\n\tReset / hapus folder $APPDIR/lib\n"
     echo -e "    webcorecli vendorlib <nama-project> <nama-composer-lib> <versi-composer-lib>\n\tInstall atau Update library vendor composer di project tertentu\n"
     echo -e "    webcorecli config <nama-project>\n\tBuat atau update config di project tertentu\n"
     echo -e "    webcorecli db <nama-project> <nama-db> <username-db> <password-db> <file-sql-data>\n\tBuat database, user dan password untuk project menggunakan file sql\n"
