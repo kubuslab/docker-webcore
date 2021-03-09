@@ -299,8 +299,11 @@ function webcore_config() {
 }
 
 function webcore_db() {
-    local project=$1 db=$2 user=$3 pass=$4 file=$5
-    
+    local project=$1 db=$2 user=$3 pass=$4 file=$5 dbms=$6
+    if [ -z "$dbms" ]; then
+        dbms="mysql"
+    fi
+
     if [ -z "$db" ]; then
         echo -e "Nama database harus ditentukan\n"
         echo -e "USAGE:\n    webcorecli db <nama-project> <nama-db> <username-db> <password-db> <file-sql-data>\n"
@@ -321,14 +324,23 @@ function webcore_db() {
 
     webcore_project $project
 
-    echo "Membuat database MySQL '${db}' dengan user '${user}' password ${pass} dari file ${file}"
-    mysql -uroot -e "CREATE USER '${user}'@'%' IDENTIFIED BY  '${pass}'"
-    mysql -uroot -e "GRANT USAGE ON *.* TO  '${user}'@'%' IDENTIFIED BY '${pass}'"
-    mysql -uroot -e "CREATE DATABASE IF NOT EXISTS ${db}"
-    mysql -uroot -e "GRANT ALL PRIVILEGES ON ${db}.* TO '${user}'@'%'"
+    if [ "$dbms" == "postgres" ]; then
+        echo "Membuat database PostgreSQL '${db}' dengan user '${user}' password ${pass} dari file ${file}"
+        sudo -u postgres
+        psql --command "CREATE USER ${user} WITH SUPERUSER PASSWORD '${pass}';"
+        createdb -O $user $db
+        psql $db < $file
+        exit
+    else
+        echo "Membuat database MySQL '${db}' dengan user '${user}' password ${pass} dari file ${file}"
+        mysql -uroot -e "CREATE USER '${user}'@'%' IDENTIFIED BY  '${pass}'"
+        mysql -uroot -e "GRANT USAGE ON *.* TO  '${user}'@'%' IDENTIFIED BY '${pass}'"
+        mysql -uroot -e "CREATE DATABASE IF NOT EXISTS ${db}"
+        mysql -uroot -e "GRANT ALL PRIVILEGES ON ${db}.* TO '${user}'@'%'"
 
-    # import database
-    mysql -uroot $db < $file
+        # import database
+        mysql -uroot $db < $file
+    fi
 }
 
 function webcore_remote() {
@@ -367,7 +379,9 @@ function webcore_remote() {
 
 function webcore_vendorlib() {
     local project=$1 lib=$2 ver=$3
-    [ -z "$lib" ] lib="kubuslab/webcore-php"
+    if [ -z "$lib" ]; then
+        lib="kubuslab/webcore-php"
+    fi
 
     webcore_project $project
     local vendordir=/app/$project/application/vendor/$lib

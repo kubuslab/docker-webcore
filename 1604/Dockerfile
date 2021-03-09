@@ -12,6 +12,7 @@ ENV BOOT2DOCKER_ID 1000
 ENV BOOT2DOCKER_GID 50
 
 ENV PHPMYADMIN_VERSION=5.0.2
+ENV PHPPGADMIN_VERSION=5.1
 ENV SUPERVISOR_VERSION=4.2.0
 
 # Tweaks to give Apache/PHP write permissions to the app
@@ -23,16 +24,30 @@ RUN usermod -u ${BOOT2DOCKER_ID} www-data && \
 RUN groupmod -g $(($BOOT2DOCKER_GID + 10000)) $(getent group $BOOT2DOCKER_GID | cut -d: -f1)
 RUN groupmod -g ${BOOT2DOCKER_GID} staff
 
+# Add the PostgreSQL PGP key to verify their Debian packages.
+# It should be the same key as https://www.postgresql.org/media/keys/ACCC4CF8.asc
+RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
+
+# Add PostgreSQL's repository. It contains the most recent stable release
+#  of PostgreSQL.
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+
 # Install packages
 ENV DEBIAN_FRONTEND noninteractive
 RUN add-apt-repository -y ppa:ondrej/php && \
   apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
   apt-get update && \
   apt-get -o Dpkg::Options::="--force-confnew" --force-yes -fuy upgrade && \
-  apt-get -y install postfix python3-setuptools wget git apache2 php-xdebug libapache2-mod-php mysql-server php-mysql pwgen php-apcu php-gd php-xml php-mbstring php-gettext zip unzip php-zip curl php-curl && \
+  apt-get -y install postfix python3-setuptools wget git apache2 php-xdebug libapache2-mod-php mysql-server php-mysql php-pgsql pwgen php-apcu php-gd php-xml php-mbstring php-gettext zip unzip php-zip curl php-curl && \
+  apt-get -y install python-software-properties software-properties-common postgresql-9.3 postgresql-client-9.3 postgresql-contrib-9.3 libpq5 phppgadmin && \
   apt-get -y install memcached php-memcached && \
   apt-get -y autoremove && \
   echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+# Adjust PostgreSQL configuration so that remote connections to the database are possible.
+# And add ``listen_addresses`` to ``/etc/postgresql/9.3/main/postgresql.conf``
+RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.3/main/pg_hba.conf && \
+  echo "listen_addresses='*'" >> /etc/postgresql/9.3/main/postgresql.conf
 
 # Install supervisor 4
 RUN curl -L https://pypi.io/packages/source/s/supervisor/supervisor-${SUPERVISOR_VERSION}.tar.gz | tar xvz && \
@@ -42,11 +57,13 @@ RUN curl -L https://pypi.io/packages/source/s/supervisor/supervisor-${SUPERVISOR
 # Add image configuration and scripts
 ADD supporting_files/start-apache2.sh /start-apache2.sh
 ADD supporting_files/start-mysqld.sh /start-mysqld.sh
+ADD supporting_files/start-postgres.sh /start-postgres.sh
 ADD supporting_files/start-memcached.sh /start-memcached.sh
 ADD supporting_files/run.sh /run.sh
 RUN chmod 755 /*.sh
 ADD supporting_files/supervisord-apache2.conf /etc/supervisor/conf.d/supervisord-apache2.conf
 ADD supporting_files/supervisord-mysqld.conf /etc/supervisor/conf.d/supervisord-mysqld.conf
+ADD supporting_files/supervisord-postgres.conf /etc/supervisor/conf.d/supervisord-postgres.conf
 ADD supporting_files/supervisord-memcached.conf /etc/supervisor/conf.d/supervisord-memcached.conf
 ADD supporting_files/supervisord.conf /etc/supervisor/supervisord.conf
 ADD supporting_files/mysqld_innodb.cnf /etc/mysql/conf.d/mysqld_innodb.cnf
@@ -84,13 +101,16 @@ RUN a2enmod rewrite
 # Configure /app folder with sample app
 RUN mkdir -p /app && rm -fr /var/www/html && ln -s /app /var/www/html
 ADD app/ /app
+ADD app/index.php /app/index.php
 
 #Environment variables to configure php
 ENV PHP_UPLOAD_MAX_FILESIZE 10M
 ENV PHP_POST_MAX_SIZE 10M
 
 # Add volumes for the app and MySql
-VOLUME  ["/var/lib/mysql", "/app" ]
+VOLUME  ["/var/lib/mysql", "/app", "/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 
-EXPOSE 80 3306 11211
+# Expose Ports:
+# 80: HTTP, 3306: MySQL, 5432: PostgreSQL, 11211: Memcached
+EXPOSE 80 3306 5432 11211
 CMD ["/run.sh"]
