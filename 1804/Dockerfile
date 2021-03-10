@@ -1,6 +1,6 @@
 FROM phusion/baseimage:0.11
 MAINTAINER TimKubus <timkubus@gmail.com>
-ENV REFRESHED_AT 2020-09-22
+ENV REFRESHED_AT 2021-03-10
 
 # based on dgraziotin/lamp
 # MAINTAINER Daniel Graziotin <daniel@ineed.coffee>
@@ -37,16 +37,17 @@ RUN add-apt-repository -y ppa:ondrej/php && \
   apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
   apt-get update && \
   apt-get -y upgrade && \
-  apt-get -y install postfix python3-setuptools wget git apache2 php-xdebug libapache2-mod-php mysql-server php-mysql php-pgsql pwgen php-apcu php-gd php-xml php-mbstring php-gettext zip unzip php-zip curl php-curl && \
-  apt-get -y install postgresql-10 postgresql-client-10 postgresql-contrib-10 libpq5 phppgadmin && \
-  apt-get -y install memcached php-memcached && \
+  apt-get -y install postfix python3-setuptools wget git apache2 php7.4 php-apcu php7.4-gd php7.4-xml php7.4-mbstring php-gettext php7.4-zip php7.4-curl php-xdebug libapache2-mod-php pwgen zip unzip curl && \
+  apt-get -y install mysql-server php7.4-mysql && \
+  apt-get -y install postgresql-10 postgresql-client-10 postgresql-contrib-10 php7.4-pgsql libpq5 phppgadmin && \
+  apt-get -y install memcached php7.4-memcached && \
   apt-get -y autoremove && \
   echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Adjust PostgreSQL configuration so that remote connections to the database are possible.
-# And add ``listen_addresses`` to ``/etc/postgresql/9.3/main/postgresql.conf``
-RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.3/main/pg_hba.conf && \
-  echo "listen_addresses='*'" >> /etc/postgresql/9.3/main/postgresql.conf
+# And add ``listen_addresses`` to ``/etc/postgresql/10/main/postgresql.conf``
+RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/10/main/pg_hba.conf && \
+  echo "listen_addresses='*'" >> /etc/postgresql/10/main/postgresql.conf
 
 # Install supervisor 4
 RUN curl -L https://pypi.io/packages/source/s/supervisor/supervisor-${SUPERVISOR_VERSION}.tar.gz | tar xvz && \
