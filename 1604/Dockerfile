@@ -30,7 +30,7 @@ RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97
 
 # Add PostgreSQL's repository. It contains the most recent stable release
 #  of PostgreSQL.
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 
 # Install packages
 ENV DEBIAN_FRONTEND noninteractive
@@ -39,7 +39,7 @@ RUN add-apt-repository -y ppa:ondrej/php && \
   apt-get update && \
   apt-get -o Dpkg::Options::="--force-confnew" --force-yes -fuy upgrade && \
   apt-get -y install postfix python3-setuptools wget git apache2 php-xdebug libapache2-mod-php mysql-server php-mysql php-pgsql pwgen php-apcu php-gd php-xml php-mbstring php-gettext zip unzip php-zip curl php-curl && \
-  apt-get -y install postgresql-9.3 postgresql-client-9.3 postgresql-contrib-9.3 libpq5 phppgadmin && \
+  apt-get -y install postgresql-10 postgresql-client-10 postgresql-contrib-10 libpq5 phppgadmin && \
   apt-get -y install memcached php-memcached && \
   apt-get -y autoremove && \
   echo "ServerName localhost" >> /etc/apache2/apache2.conf
