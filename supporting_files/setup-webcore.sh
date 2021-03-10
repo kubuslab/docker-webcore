@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=0.0.1.2
+VERSION=0.0.1.3
 ACTION=$1
 APPDIR=/app
 UPGRADE_URL=https://raw.githubusercontent.com/kubuslab/docker-webcore/master/supporting_files/setup-webcore.sh
