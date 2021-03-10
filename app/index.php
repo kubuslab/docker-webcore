@@ -6,6 +6,7 @@ if ($c == 'info') {
 }
 
 $db = new PDO('mysql:host=localhost', 'root', null);
+$db2 = new PDO('pgsql:host=localhost', 'postgres', 'postgres');
 
 function getOSInformation()
  {
@@ -79,8 +80,10 @@ $osInfo = getOSInformation();
 OS: <?php echo $osInfo['pretty_name']; ?><br/>
 Apache: <?php echo apache_get_version(); ?><br/>
 MySQL Version: <?php echo $db->getAttribute( PDO::ATTR_SERVER_VERSION ); ?><br/>
+PostgreSQL Version: <?php echo $db2->getAttribute( PDO::ATTR_SERVER_VERSION ); ?><br/>
 PHP Version: <?php echo phpversion(); ?> <a href="/?c=info" target="_blank">View Info</a><br/>
 phpMyAdmin Version: <?php echo getenv('PHPMYADMIN_VERSION'); ?> <a href="/phpmyadmin" target="_blank">Go to PhpMyAdmin</a><br/>
+phpPgAdmin Version: <?php echo getenv('PHPPGADMIN_VERSION'); ?> <a href="/phppgadmin" target="_blank">Go to PhpPgAdmin</a><br/>
 WebCore Version: <?php echo class_exists('\WebCore\AppContext') ? \WebCore\AppContext::VERSION : '<i><unknown></i>'; ?>
             </pre>
         </section>
