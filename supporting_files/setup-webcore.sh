@@ -83,9 +83,13 @@ function webcore_init() {
         # download extension webcore.so
         git clone $PHP_BASE .
 
+        local phpv=$(php -v|grep -i 'PHP.*cli'|cut -d ' ' -f2)
+
         # perbaiki file 92-webcore.ini
-        sed -i 's/;;extension/extension/g' /etc/php/7.4/cli/conf.d/92-webcore.ini
-        sed -i 's/;;extension/extension/g' /etc/php/7.4/apache2/conf.d/92-webcore.ini
+        #sed -i 's/;;extension/extension/g' /etc/php/7.4/cli/conf.d/92-webcore.ini
+        #sed -i 's/;;extension/extension/g' /etc/php/7.4/apache2/conf.d/92-webcore.ini
+        sed -E -i "s/;;(extension.*-${phpv}.*)/\1/" /etc/php/7.4/cli/conf.d/92-webcore.ini
+        sed -E -i "s/;;(extension.*-${phpv}.*)/\1/" /etc/php/7.4/apache2/conf.d/92-webcore.ini
 
         # buat directory logging
         mkdir -p $LOGDIR

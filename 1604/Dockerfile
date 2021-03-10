@@ -43,6 +43,7 @@ RUN add-apt-repository -y ppa:ondrej/php && \
   apt-get -y install postgresql-10 postgresql-client-10 postgresql-contrib-10 php7.4-pgsql libpq5 phppgadmin && \
   apt-get -y install memcached php7.4-memcached && \
   apt-get -y autoremove && \
+  update-alternatives --set php /usr/bin/php7.4 && \
   echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Adjust PostgreSQL configuration so that remote connections to the database are possible.
