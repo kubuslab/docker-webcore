@@ -331,7 +331,7 @@ function webcore_db() {
 
     if [ "$dbms" == "postgres" ]; then
         echo "Membuat database PostgreSQL '${db}' dengan user '${user}' password ${pass} dari file ${file}"
-        sudo -u postgres
+        su - postgres
         psql --command "CREATE USER ${user} WITH SUPERUSER PASSWORD '${pass}';"
         createdb -O $user $db
         psql $db < $file
