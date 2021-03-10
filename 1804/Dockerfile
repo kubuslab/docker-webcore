@@ -40,9 +40,11 @@ RUN add-apt-repository -y ppa:ondrej/php && \
   apt-get -y install postfix python3-setuptools wget git apache2 php7.4 php-apcu php7.4-gd php7.4-xml php7.4-mbstring php-gettext php7.4-zip php7.4-curl php-xdebug libapache2-mod-php pwgen zip unzip curl && \
   apt-get -y install mysql-server php7.4-mysql && \
   apt-get -y install postgresql-10 postgresql-client-10 postgresql-contrib-10 php7.4-pgsql libpq5 phppgadmin && \
+  apt-get install -y --no-install-recommends locales && \
   apt-get -y install memcached php7.4-memcached && \
   apt-get -y autoremove && \
   update-alternatives --set php /usr/bin/php7.4 && \
+  localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
   echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Adjust PostgreSQL configuration so that remote connections to the database are possible.
@@ -100,9 +102,9 @@ ADD supporting_files/apache_default /etc/apache2/sites-available/000-default.con
 RUN a2enmod rewrite
 
 # Configure /app folder with sample app
-RUN mkdir -p /app && rm -fr /var/www/html && ln -s /app /var/www/html
 ADD app/ /app
 ADD app/index.php /app/index.php
+RUN mkdir -p /app && rm -fr /var/www/html && ln -s /app /var/www/html
 
 #Environment variables to configure php
 ENV PHP_UPLOAD_MAX_FILESIZE 10M

@@ -50,7 +50,8 @@ Component | `latest-1604` | `latest-1804`
 ---|---|---
 [Apache][apache] | `2.4.18` | `2.4.29`
 [MySQL][mysql] | `5.7.30` | `5.7.30`
-[PHP][php] | `7.4.6` | `7.4.6`
+[PostreSQL][postgres] | `5.7.30` | `5.7.30`
+[PHP][php] | `7.4.16` | `7.4.16`
 [phpMyAdmin][phpmyadmin] | `5.0.2` | `5.0.2`
 
 
@@ -228,6 +229,7 @@ WebCore-Docker is licensed under the [Apache 2.0 License][info-license].
 [dockerlamp]: https://github.com/mattrayner/docker-lamp
 [apache]: http://www.apache.org/
 [mysql]: https://www.mysql.com/
+[postgres]: https://www.postgresql.org/
 [php]: http://php.net/
 [phpmyadmin]: https://www.phpmyadmin.net/
 
