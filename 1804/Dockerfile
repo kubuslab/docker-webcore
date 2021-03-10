@@ -96,9 +96,11 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
     php -r "unlink('composer-setup.php');" && \
     mv composer.phar /usr/local/bin/composer
 
-ENV MYSQL_PASS:-$(pwgen -s 12 1)
+## ENV MYSQL_PASS:-$(pwgen -s 12 1)
+
 # config to enable .htaccess
 ADD supporting_files/apache_default /etc/apache2/sites-available/000-default.conf
+ADD supporting_files/apache_phppgadmin /etc/apache2/conf-available/phppgadmin.conf
 RUN a2enmod rewrite
 
 # Configure /app folder with sample app
