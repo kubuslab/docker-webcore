@@ -108,20 +108,6 @@ else
     echo "=> Using an existing volume of MySQL"
 fi
 
-if [[ ! -f "/app/lib/.postgres" ]]; then
-    echo "=> Initialize PostgreSQL ..."
-
-    /start-postgres.sh &
-
-    su - postgres
-    psql --command "ALTER USER postgres PASSWORD 'postgres';"
-    exit
-
-    echo "=> Done!"
-else
-    echo "=> Using an existing setup of PostgreSQL"
-fi
-
 echo "Setup WebCore"
 /setup-webcore.sh init
 

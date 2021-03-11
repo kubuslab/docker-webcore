@@ -50,7 +50,7 @@ Component | `latest-1604` | `latest-1804`
 ---|---|---
 [Apache][apache] | `2.4.18` | `2.4.29`
 [MySQL][mysql] | `5.7.30` | `5.7.30`
-[PostreSQL][postgres] | `5.7.30` | `5.7.30`
+[PostreSQL][postgres] | `10` | `10`
 [PHP][php] | `7.4.16` | `7.4.16`
 [phpMyAdmin][phpmyadmin] | `5.0.2` | `5.0.2`
 

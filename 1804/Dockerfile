@@ -105,7 +105,7 @@ RUN a2enmod rewrite
 
 # Configure /app folder with sample app
 ADD app/ /app
-ADD app/index.php /app/index.php
+ADD supporting_files/index.php /app/index.php
 RUN mkdir -p /app && rm -fr /var/www/html && ln -s /app /var/www/html
 
 #Environment variables to configure php

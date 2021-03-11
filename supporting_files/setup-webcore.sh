@@ -110,6 +110,23 @@ function webcore_init() {
     touch $APPDIR/lib/.installed
 }
 
+function webcore_prepare() {
+    if [[ ! -f "/app/lib/.postgres" ]]; then
+        echo "=> Initialize PostgreSQL ..."
+
+        su - postgres
+        /usr/lib/postgresql/10/bin/postgres -D /var/lib/postgresql/10/main -c config_file=/etc/postgresql/10/main/postgresql.conf &
+        psql --command "ALTER USER postgres PASSWORD 'postgres';"
+        exit
+
+        touch /app/lib/.postgres
+        echo "=> Done!"
+    else
+        echo "=> Using an existing setup of PostgreSQL"
+    fi
+
+}
+
 function webcore_project() {
     local nama=$1 aksi=$2 aksi2=$3 update=0 all=0
     local basedir=$APPDIR/$nama
@@ -436,7 +453,9 @@ function webcore_upgrade() {
 
 function webcore_help() {
     echo -e "WebCore Project CLI versi $VERSION\nUSAGE:\n  webcorecli <command> [options1 option2 ...]\n"
-    echo -e "Options:\n    webcorecli project <nama-project>\n\tBuat project baru\n"
+    echo -e "Options:\n    webcorecli prepare\n\tPersiapan beberapa kebutuhan sistem secara manual\n"
+    echo -e "    webcorecli update-lib\n\tUpdate library webcore.so\n"
+    echo -e "    webcorecli project <nama-project>\n\tBuat project baru\n"
     echo -e "    webcorecli project <nama-project> update\n\tUpdate project tertentu\n"
     echo -e "    webcorecli project <nama-project> update all\n\tUpdate project tertentu beserta config dan themenya\n"
     echo -e "    webcorecli reset\n\tReset / hapus folder $APPDIR/lib\n"
@@ -459,6 +478,9 @@ function webcore_help() {
 webcore_init
 
 case "$ACTION" in
+    prepare)
+        webcore_prepare "$@"
+        ;;
     project)
         webcore_project "$@"
         ;;
