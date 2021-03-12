@@ -105,9 +105,9 @@ ADD supporting_files/apache_phppgadmin /etc/apache2/conf-available/phppgadmin.co
 RUN a2enmod rewrite
 
 # Configure /app folder with sample app
-ADD app/ /app
-ADD supporting_files/index.php /app/index.php
 RUN mkdir -p /app && rm -fr /var/www/html && ln -s /app /var/www/html
+ADD app/ /app
+ADD app/index.php /app/index.php
 
 #Environment variables to configure php
 ENV PHP_UPLOAD_MAX_FILESIZE 10M

@@ -47,6 +47,17 @@ RUN add-apt-repository -y ppa:ondrej/php && \
   localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
   echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
+# grab gosu for easy step-down from root
+# https://github.com/tianon/gosu/releases
+ENV GOSU_VERSION 1.12
+RUN set -eux; \
+  dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+  chmod +x /usr/local/bin/gosu; \
+	gosu --version; \
+	gosu nobody true
+
 # Adjust PostgreSQL configuration so that remote connections to the database are possible.
 # And add ``listen_addresses`` to ``/etc/postgresql/10/main/postgresql.conf``
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/10/main/pg_hba.conf && \
@@ -63,6 +74,7 @@ ADD supporting_files/start-mysqld.sh /start-mysqld.sh
 ADD supporting_files/start-postgres.sh /start-postgres.sh
 ADD supporting_files/start-memcached.sh /start-memcached.sh
 ADD supporting_files/run.sh /run.sh
+ADD supporting_files/postgres-entrypoint.sh /postgres-entrypoint.sh
 RUN chmod 755 /*.sh
 ADD supporting_files/supervisord-apache2.conf /etc/supervisor/conf.d/supervisord-apache2.conf
 ADD supporting_files/supervisord-mysqld.conf /etc/supervisor/conf.d/supervisord-mysqld.conf
@@ -104,9 +116,9 @@ ADD supporting_files/apache_phppgadmin /etc/apache2/conf-available/phppgadmin.co
 RUN a2enmod rewrite
 
 # Configure /app folder with sample app
-ADD app/ /app
-ADD supporting_files/index.php /app/index.php
 RUN mkdir -p /app && rm -fr /var/www/html && ln -s /app /var/www/html
+ADD app/ /app
+ADD app/index.php /app/index.php
 
 #Environment variables to configure php
 ENV PHP_UPLOAD_MAX_FILESIZE 10M

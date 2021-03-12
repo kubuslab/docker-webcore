@@ -114,10 +114,10 @@ function webcore_prepare() {
     if [[ ! -f "/app/lib/.postgres" ]]; then
         echo "=> Initialize PostgreSQL ..."
 
-        su - postgres
-        /usr/lib/postgresql/10/bin/postgres -D /var/lib/postgresql/10/main -c config_file=/etc/postgresql/10/main/postgresql.conf &
-        psql --command "ALTER USER postgres PASSWORD 'postgres';"
-        exit
+        # gosu postgres
+        # /usr/lib/postgresql/10/bin/postgres -D /var/lib/postgresql/10/main -c config_file=/etc/postgresql/10/main/postgresql.conf &
+        # psql --command "ALTER USER postgres PASSWORD 'postgres';"
+        # exit
 
         touch /app/lib/.postgres
         echo "=> Done!"
@@ -348,11 +348,9 @@ function webcore_db() {
 
     if [ "$dbms" == "postgres" ]; then
         echo "Membuat database PostgreSQL '${db}' dengan user '${user}' password ${pass} dari file ${file}"
-        su - postgres
-        psql --command "CREATE USER ${user} WITH SUPERUSER PASSWORD '${pass}';"
-        createdb -O $user $db
-        psql $db < $file
-        exit
+        gosu postgres psql --command "CREATE USER ${user} WITH SUPERUSER PASSWORD '${pass}';"
+        gosu postgres createdb -O $user $db
+        gosu postgres psql $db < $file
     else
         echo "Membuat database MySQL '${db}' dengan user '${user}' password ${pass} dari file ${file}"
         mysql -uroot -e "CREATE USER '${user}'@'%' IDENTIFIED BY  '${pass}'"
