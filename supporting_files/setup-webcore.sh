@@ -111,13 +111,11 @@ function webcore_init() {
 }
 
 function webcore_prepare() {
-    if [[ ! -f "/app/lib/.postgres" ]]; then
+    if [ ! -f "/app/lib/.postgres" ]; then
         echo "=> Initialize PostgreSQL ..."
 
-        # gosu postgres
-        # /usr/lib/postgresql/10/bin/postgres -D /var/lib/postgresql/10/main -c config_file=/etc/postgresql/10/main/postgresql.conf &
-        # psql --command "ALTER USER postgres PASSWORD 'postgres';"
-        # exit
+        #TODO: ASUMSI POSTGRESQL SERVER SUDAH RUNNING
+        gosu postgres psql --command "ALTER USER postgres PASSWORD 'postgres';"
 
         touch /app/lib/.postgres
         echo "=> Done!"
@@ -125,6 +123,13 @@ function webcore_prepare() {
         echo "=> Using an existing setup of PostgreSQL"
     fi
 
+    local subaction=$1
+    case "$subaction" in
+        promedika)
+            # jalankan persiapan promediak
+            /promedika-prepare.sh
+            ;;
+    esac
 }
 
 function webcore_project() {

@@ -75,6 +75,7 @@ ADD supporting_files/start-postgres.sh /start-postgres.sh
 ADD supporting_files/start-memcached.sh /start-memcached.sh
 ADD supporting_files/run.sh /run.sh
 ADD supporting_files/postgres-entrypoint.sh /postgres-entrypoint.sh
+ADD supporting_files/promedika-prepare.sh /promedika-prepare.sh
 RUN chmod 755 /*.sh
 ADD supporting_files/supervisord-apache2.conf /etc/supervisor/conf.d/supervisord-apache2.conf
 ADD supporting_files/supervisord-mysqld.conf /etc/supervisor/conf.d/supervisord-mysqld.conf
@@ -82,6 +83,7 @@ ADD supporting_files/supervisord-postgres.conf /etc/supervisor/conf.d/supervisor
 ADD supporting_files/supervisord-memcached.conf /etc/supervisor/conf.d/supervisord-memcached.conf
 ADD supporting_files/supervisord.conf /etc/supervisor/supervisord.conf
 ADD supporting_files/mysqld_innodb.cnf /etc/mysql/conf.d/mysqld_innodb.cnf
+ADD supporting_files/phppgadmin.config.php /etc/phppgadmin/config.inc.php
 
 # Remove pre-installed database
 RUN rm -rf /var/lib/mysql
@@ -97,10 +99,10 @@ ADD supporting_files/php-webcore.ini /etc/php/7.4/cli/conf.d/92-webcore.ini
 ADD supporting_files/php-webcore.ini /etc/php/7.4/apache2/conf.d/92-webcore.ini
 
 # Add phpmyadmin
-RUN wget -O /tmp/phpmyadmin.tar.gz https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz
-RUN tar xfvz /tmp/phpmyadmin.tar.gz -C /var/www
-RUN ln -s /var/www/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages /var/www/phpmyadmin
-RUN mv /var/www/phpmyadmin/config.sample.inc.php /var/www/phpmyadmin/config.inc.php
+RUN wget -O /tmp/phpmyadmin.tar.gz https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz && \
+    tar xfvz /tmp/phpmyadmin.tar.gz -C /var/www && \
+    ln -s /var/www/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages /var/www/phpmyadmin && \
+    mv /var/www/phpmyadmin/config.sample.inc.php /var/www/phpmyadmin/config.inc.php
 
 # Add composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
@@ -125,8 +127,11 @@ ENV PHP_UPLOAD_MAX_FILESIZE 10M
 ENV PHP_POST_MAX_SIZE 10M
 ENV PHP_VERSION 7.4
 
-# Add volumes for the app and MySql
-VOLUME  ["/var/lib/mysql", "/app", "/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
+ENV PG_MAJOR 10
+ENV PGDATA /var/lib/postgresql/10/main
+
+# Add volumes for the app, MySQL and PostreSQL
+VOLUME  ["/var/lib/mysql", "/app", "/var/lib/postgresql/10/main"]
 
 # Expose Ports:
 # 80: HTTP, 3306: MySQL, 5432: PostgreSQL, 11211: Memcached

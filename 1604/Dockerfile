@@ -19,10 +19,9 @@ ENV SUPERVISOR_VERSION=4.2.0
 RUN usermod -u ${BOOT2DOCKER_ID} www-data && \
     usermod -G staff www-data && \
     useradd -r mysql && \
-    usermod -G staff mysql
-
-RUN groupmod -g $(($BOOT2DOCKER_GID + 10000)) $(getent group $BOOT2DOCKER_GID | cut -d: -f1)
-RUN groupmod -g ${BOOT2DOCKER_GID} staff
+    usermod -G staff mysql && \
+    groupmod -g $(($BOOT2DOCKER_GID + 10000)) $(getent group $BOOT2DOCKER_GID | cut -d: -f1) && \
+    groupmod -g ${BOOT2DOCKER_GID} staff
 
 # Add the PostgreSQL PGP key to verify their Debian packages.
 # It should be the same key as https://www.postgresql.org/media/keys/ACCC4CF8.asc
@@ -48,6 +47,17 @@ RUN add-apt-repository -y ppa:ondrej/php && \
   localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
   echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
+# grab gosu for easy step-down from root
+# https://github.com/tianon/gosu/releases
+ENV GOSU_VERSION 1.12
+RUN set -eux; \
+  dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+  chmod +x /usr/local/bin/gosu; \
+	gosu --version; \
+	gosu nobody true
+
 # Adjust PostgreSQL configuration so that remote connections to the database are possible.
 # And add ``listen_addresses`` to ``/etc/postgresql/10/main/postgresql.conf``
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/10/main/pg_hba.conf && \
@@ -64,6 +74,8 @@ ADD supporting_files/start-mysqld.sh /start-mysqld.sh
 ADD supporting_files/start-postgres.sh /start-postgres.sh
 ADD supporting_files/start-memcached.sh /start-memcached.sh
 ADD supporting_files/run.sh /run.sh
+ADD supporting_files/postgres-entrypoint.sh /postgres-entrypoint.sh
+ADD supporting_files/promedika-prepare.sh /promedika-prepare.sh
 RUN chmod 755 /*.sh
 ADD supporting_files/supervisord-apache2.conf /etc/supervisor/conf.d/supervisord-apache2.conf
 ADD supporting_files/supervisord-mysqld.conf /etc/supervisor/conf.d/supervisord-mysqld.conf
@@ -71,6 +83,7 @@ ADD supporting_files/supervisord-postgres.conf /etc/supervisor/conf.d/supervisor
 ADD supporting_files/supervisord-memcached.conf /etc/supervisor/conf.d/supervisord-memcached.conf
 ADD supporting_files/supervisord.conf /etc/supervisor/supervisord.conf
 ADD supporting_files/mysqld_innodb.cnf /etc/mysql/conf.d/mysqld_innodb.cnf
+ADD supporting_files/phppgadmin.config.php /etc/phppgadmin/config.inc.php
 
 # Remove pre-installed database
 RUN rm -rf /var/lib/mysql
@@ -86,10 +99,10 @@ ADD supporting_files/php-webcore.ini /etc/php/7.4/cli/conf.d/92-webcore.ini
 ADD supporting_files/php-webcore.ini /etc/php/7.4/apache2/conf.d/92-webcore.ini
 
 # Add phpmyadmin
-RUN wget -O /tmp/phpmyadmin.tar.gz https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz
-RUN tar xfvz /tmp/phpmyadmin.tar.gz -C /var/www
-RUN ln -s /var/www/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages /var/www/phpmyadmin
-RUN mv /var/www/phpmyadmin/config.sample.inc.php /var/www/phpmyadmin/config.inc.php
+RUN wget -O /tmp/phpmyadmin.tar.gz https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz && \
+    tar xfvz /tmp/phpmyadmin.tar.gz -C /var/www && \
+    ln -s /var/www/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages /var/www/phpmyadmin && \
+    mv /var/www/phpmyadmin/config.sample.inc.php /var/www/phpmyadmin/config.inc.php
 
 # Add composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
@@ -114,8 +127,11 @@ ENV PHP_UPLOAD_MAX_FILESIZE 10M
 ENV PHP_POST_MAX_SIZE 10M
 ENV PHP_VERSION 7.4
 
-# Add volumes for the app and MySql
-VOLUME  ["/var/lib/mysql", "/app", "/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
+ENV PG_MAJOR 10
+ENV PGDATA /var/lib/postgresql/10/main
+
+# Add volumes for the app, MySQL and PostreSQL
+VOLUME  ["/var/lib/mysql", "/app", "/var/lib/postgresql/10/main"]
 
 # Expose Ports:
 # 80: HTTP, 3306: MySQL, 5432: PostgreSQL, 11211: Memcached
