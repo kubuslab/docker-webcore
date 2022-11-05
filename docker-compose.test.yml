@@ -19,3 +19,14 @@ web1604-php7:
     - "3011:3306"
     - "5432:5432"
     - "3012:11211"
+
+web1804-php7-arm64v8:
+  build: .
+  dockerfile: ./arm64v8/Dockerfile
+  environment:
+    - MYSQL_ADMIN_PASS=password
+  ports:
+    - "3000:80"
+    - "3001:3306"
+    - "5432:5432"
+    - "3002:11211"
