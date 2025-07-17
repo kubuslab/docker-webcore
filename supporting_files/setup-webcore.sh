@@ -1,17 +1,17 @@
 #!/bin/bash
 VERSION=0.0.1.3
 ACTION=$1
-APPDIR=/app
-UPGRADE_URL=https://raw.githubusercontent.com/kubuslab/docker-webcore/master/supporting_files/setup-webcore.sh
-PACKAGE_BASE=kubuslab/webcore-php:dev-master
-PHP_BASE=https://gitlab.com/kubuslab/webcore-php.git
-REPO_BASE=https://gitlab.com/kubuslab/webcore2-base.git
-THEME_RES=https://gitlab.com/webcore/res-clipone.git
-REMOTE_DEV=https://webcli.kubuslab.id/push.php
-REMOTE_TOKEN=eb803b076289d799b7fa2831c34f10fd
-LOGDIR=/var/log/webcore
-PRIVDIR=/webcore/private/files/
-PUBDIR=/webcore/public/files/
+APPDIR=${APPDIR:-"/app"}
+PACKAGE_BASE=${PACKAGE_BASE:-"kubuslab/webcore-php:dev-master"}
+GITLAB_PAT=${GITLAB_PAT:-"timkubus:glpat-Wekw2btFSN3GdfbTu216"}
+PHP_BASE=${PHP_BASE:-"https://gitlab.com/kubuslab/webcore-php.git"}
+REPO_BASE=${REPO_BASE:-"https://gitlab.com/kubuslab/webcore2-base.git"}
+THEME_RES=${THEME_RES:-"https://gitlab.com/webcore/res-clipone.git"}
+LOGDIR=${LOGDIR:-"/var/log/webcore"}
+PRIVDIR=${PRIVDIR:-"/webcore/private/files/"}
+PUBDIR=${PUBDIR:-"/webcore/public/files/"}
+TIMEZONE=${TIMEZONE:-"Asia/Jakarta"}
+DOMAIN=${DOMAIN*-"127.0.0.1"}
 shift
 
 function read_input() {
@@ -41,11 +41,10 @@ function check_git() {
     fi
 }
 
-function remote_update() {
-    local url="$REMOTE_DEV?token=$REMOTE_TOKEN&$1"
-    echo "Update remote development server -> $1 .. "
-    local output=$(curl -s $url | grep -v 'pre>')
-    echo -e "\n$output\n"
+function git_clone() {
+    local url=$1 dir=$2 pat="$GITLAB_PAT@gitlab.com"
+    local newurl="${url/gitlab.com/$pat}"
+    git clone $newurl $dir
 }
 
 function webcore_init() {
@@ -55,12 +54,6 @@ function webcore_init() {
         echo "Reset Semua Apps.."
         echo "  -> Hapus Library WebCore.."
         rm -rf $APPDIR/lib
-        #for p in $(cat $APPDIR/lib/.projects 2>/dev/null); do
-            ## PERINGATAN!:
-            ## JANGAN LAKUKAN INI, BAHAYA!! MODULES YANG BELUM DISIMPAN BISA TERHAPUS 
-            #echo "  -> Hapus project $p.."
-            #rm -rf $APPDIR/$p
-        #done
         echo "..OK"
         return
     elif [ -f $APPDIR/lib/.installed ]; then
@@ -73,63 +66,47 @@ function webcore_init() {
         git pull
         echo "..OK"
     else
-        check_git
+        # check_git
 
         echo "  -> Setup Environment.."
         # siapkan folder lib
         mkdir -p $APPDIR/lib/webcore-php
         cd $APPDIR/lib/webcore-php
 
-        # download extension webcore.so
-        git clone $PHP_BASE .
+        # download extension webcore.so dan copy ke folder extension
+        git_clone $PHP_BASE .
+        mkdir -p /usr/local/lib/php/extensions/webcore
+        cp ext/7.4/*.so /usr/local/lib/php/extensions/webcore/
 
-        local phpv=$(php -v|grep -i 'PHP.*cli'|cut -d ' ' -f2)
-
-        # perbaiki file 92-webcore.ini
-        #sed -i 's/;;extension/extension/g' /etc/php/7.4/cli/conf.d/92-webcore.ini
-        #sed -i 's/;;extension/extension/g' /etc/php/7.4/apache2/conf.d/92-webcore.ini
-        sed -E -i "s/;;(extension.*-${phpv}.*)/\1/" /etc/php/7.4/cli/conf.d/92-webcore.ini
-        sed -E -i "s/;;(extension.*-${phpv}.*)/\1/" /etc/php/7.4/apache2/conf.d/92-webcore.ini
+        # Aktifkan extension webcore melalui 92-webcore.ini
+        echo "extension_dir=/usr/local/lib/php/extensions/webcore" > /usr/local/etc/php/conf.d/92-webcore.ini
+        echo "extension=webcore-$PHP_VERSION.so" >> /usr/local/etc/php/conf.d/92-webcore.ini
 
         # buat directory logging
         mkdir -p $LOGDIR
-        chown -R www-data:staff $LOGDIR
+        chown -R www-data:www-data $LOGDIR
 
         # buat directory untuk file private
         mkdir -p $PRIVDIR
-        chown -R www-data:staff $PRIVDIR
+        # chown -R www-data:www-data $PRIVDIR
 
         # buat directory untuk file public
         mkdir -p $PUBDIR
-        chown -R www-data:staff $PUBDIR
+        # chown -R www-data:www-data $PUBDIR
 
-        # setup timezone
-        cp /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+        # Set timezone to $TIMEZONE
+        apk add --no-cache tzdata
+        cp /usr/share/zoneinfo/$TIMEZONE /etc/localtime
+        echo "$TIMEZONE" > /etc/timezone
+        apk del tzdata
+        echo "date.timezone=$TIMEZONE" > /usr/local/etc/php/conf.d/90-timezone.ini
     fi
 
     touch $APPDIR/lib/.installed
 }
 
 function webcore_prepare() {
-    if [ ! -f "/app/lib/.postgres" ]; then
-        echo "=> Initialize PostgreSQL ..."
-
-        #TODO: ASUMSI POSTGRESQL SERVER SUDAH RUNNING
-        gosu postgres psql --command "ALTER USER postgres PASSWORD 'postgres';"
-
-        touch /app/lib/.postgres
-        echo "=> Done!"
-    else
-        echo "=> Using an existing setup of PostgreSQL"
-    fi
-
-    local subaction=$1
-    case "$subaction" in
-        promedika)
-            # jalankan persiapan promediak
-            /promedika-prepare.sh
-            ;;
-    esac
+    
 }
 
 function webcore_project() {
@@ -159,11 +136,14 @@ function webcore_project() {
         cd $basedir
         git pull
 
+        # Install package composer 
+        composer install
+
         echo "  -> Update paket library utama.."
         composer update $PACKAGE_BASE
 
-        echo "  -> Update config 127.0.0.1 .."
-        local confdir=$basedir/application/config/domains/127.0.0.1
+        echo "  -> Update config $DOMAIN .."
+        local confdir=$basedir/application/config/domains/$DOMAIN
         cd $confdir
         git pull
 
@@ -180,7 +160,10 @@ function webcore_project() {
     elif [ $update -eq 0 ]; then
         mkdir -p $basedir
         cd $basedir
-        git clone $REPO_BASE .
+        git_clone $REPO_BASE .
+
+        # Install package composer 
+        composer install
 
         echo "  -> Siapkan paket library utama.."
         composer require $PACKAGE_BASE
@@ -188,11 +171,13 @@ function webcore_project() {
         echo "  -> Siapkan resource theme default.."
         mkdir -p $basedir/resources
         cd $basedir/resources
-        git clone $THEME_RES .
+        git_clone $THEME_RES .
 
         echo "  -> Siapkan directory log di $LOGDIR/$nama .."
         mkdir -p $LOGDIR/$nama
-        chown -R www-data:staff $LOGDIR/$nama
+        chown -R www-data:www-data $LOGDIR/$nama
+
+        chown -R www-data:www-data $basedir
 
         echo $project >> $APPDIR/lib/.projects
     fi
@@ -235,7 +220,7 @@ function webcore_module() {
         mkdir -p $moddir
         cd $moddir
 
-        git clone $url .
+        git_clone $url .
 
         echo $module >> $APPDIR/lib/.$project.modules
 
@@ -265,7 +250,7 @@ function webcore_theme() {
         echo "Memuat Theme::Engine $theme di project $project ..."
         mkdir -p $themedir
         cd $themedir
-        git clone https://gitlab.com/webcore/theme-$theme.git .
+        git_clone https://gitlab.com/webcore/theme-$theme.git .
         echo "..OK"
 
         echo "************************************************************************"
@@ -286,7 +271,7 @@ function webcore_theme() {
         echo "Memuat Theme::Resources $theme di project $project ..."
         mkdir -p $resdir
         cd $resdir
-        git clone https://gitlab.com/webcore/res-$theme.git .
+        git_clone https://gitlab.com/webcore/res-$theme.git .
 
         echo  $theme >> $APPDIR/lib/.$project.themes
 
@@ -300,22 +285,22 @@ function webcore_config() {
     webcore_project $project
 
     local domaindir=$APPDIR/$project/application/config/domains
-    local confdir=$domaindir/127.0.0.1
+    local confdir=$domaindir/$DOMAIN
     if [ -d $confdir ]; then
-        echo "Project $project config untuk domain 127.0.0.1 ... OK"
+        echo "Project $project config untuk domain $DOMAIN ... OK"
         echo "  -> Update config .."
         cd $confdir
         git pull
     else
-        echo "Memuat config untuk domain 127.0.0.1 di project $project ..."
+        echo "Memuat config untuk domain $DOMAIN di project $project ..."
         mkdir -p $confdir
         cd $confdir
-        git clone https://gitlab.com/docker-setup/config-$project.git .
+        git_clone https://gitlab.com/docker-setup/config-$project.git .
         echo "..OK"
 
         # pastikan git berhasil
         if [ "$(ls -A $confdir)" ]; then
-            echo "  -> Backup config localhost dan buat symlink ke 127.0.0.1"
+            echo "  -> Backup config localhost dan buat symlink ke $DOMAIN"
             mv -f $domaindir/localhost $domaindir/localhost.backup
             ln -sf $confdir $domaindir/localhost
             echo "..OK"
@@ -326,80 +311,13 @@ function webcore_config() {
 }
 
 function webcore_db() {
-    local project=$1 db=$2 user=$3 pass=$4 file=$5 dbms=$6
-    if [ -z "$dbms" ]; then
-        dbms="mysql"
-    fi
-
-    if [ -z "$db" ]; then
-        echo -e "Nama database harus ditentukan\n"
-        echo -e "USAGE:\n    webcorecli db <nama-project> <nama-db> <username-db> <password-db> <file-sql-data>\n"
-        exit
-    elif [ -z "$user" ]; then
-        echo -e "Username database harus ditentukan\n"
-        echo -e "USAGE:\n    webcorecli db <nama-project> <nama-db> <username-db> <password-db> <file-sql-data>\n"
-        exit
-    elif [ -z "$pass" ]; then
-        echo -e "Password database harus ditentukan\n"
-        echo -e "USAGE:\n    webcorecli db <nama-project> <nama-db> <username-db> <password-db> <file-sql-data>\n"
-        exit
-    elif [ -z "$file" ]; then
-        echo -e "File data awal sql harus ditentukan\n"
-        echo -e "USAGE:\n    webcorecli db <nama-project> <nama-db> <username-db> <password-db> <file-sql-data>\n"
-        exit
-    fi
-
-    webcore_project $project
-
-    if [ "$dbms" == "postgres" ]; then
-        echo "Membuat database PostgreSQL '${db}' dengan user '${user}' password ${pass} dari file ${file}"
-        gosu postgres psql --command "CREATE USER ${user} WITH SUPERUSER PASSWORD '${pass}';"
-        gosu postgres createdb -O $user $db
-        gosu postgres psql $db < $file
-    else
-        echo "Membuat database MySQL '${db}' dengan user '${user}' password ${pass} dari file ${file}"
-        mysql -uroot -e "CREATE USER '${user}'@'%' IDENTIFIED BY  '${pass}'"
-        mysql -uroot -e "GRANT USAGE ON *.* TO  '${user}'@'%' IDENTIFIED BY '${pass}'"
-        mysql -uroot -e "CREATE DATABASE IF NOT EXISTS ${db}"
-        mysql -uroot -e "GRANT ALL PRIVILEGES ON ${db}.* TO '${user}'@'%'"
-
-        # import database
-        mysql -uroot $db < $file
-    fi
+    echo -e "Tidak mendukung pembuatan database... "
+    exit 1
 }
 
 function webcore_remote() {
-    local subaction=$1 project=$2 name=$3
-
-    if [ "$subaction" != "lib" ]; then
-        if [ -z "$project" ]; then
-            echo -e "Nama project harus ditentukan\n\n"
-            webcore_help
-        fi
-    fi
-
-    local params="action=${subaction}"
-    case "$subaction" in
-        config)
-            params="$params&project=${project}&name=$url"
-            ;;
-        theme)
-            params="$params&project=${project}&name=$name"
-            ;;
-        module)
-            params="$params&module=$name"
-            if [ "$project" != "all" ]; then
-                params="$params&project=${project}"
-            fi
-            ;;
-        lib)
-            params="action=vendor-lib&name=webcore-php"
-            ;;
-        *)
-            webcore_help
-    esac
-
-    remote_update "$params"
+    echo -e "Tidak mendukung remote update... "
+    exit 1
 }
 
 function webcore_vendorlib() {
@@ -424,34 +342,8 @@ function webcore_vendorlib() {
 }
 
 function webcore_upgrade() {
-    local app=/setup-webcore.sh tmp=/tmp/setup-webcore.sh checksum=$APPDIR/lib/.checksum
-    # Upgrade diri sendiri
-
-    echo -e "Upgrade diri sendiri... "
-    curl -s -o $tmp $UPGRADE_URL
-    if [ -f $tmp ]; then
-        local cks=$(md5sum $tmp | cut -d ' ' -f1)
-        if [ -f $checksum ]; then
-            local cks2=$(cat $checksum)
-            if [ "$cks" != "$cks2" ]; then
-                echo $cks > $checksum
-            else
-                echo " ..BELUM ADA UPDATE"
-                return
-            fi
-        else
-            echo $cks > $checksum
-        fi
-    else
-        echo " ..GAGAL"
-        return
-    fi
-
-    chmod +x $tmp
-    . $tmp
-    echo -e "[VERSI: $VERSION]"
-    mv $tmp $app
-    echo " ..OK"
+    echo -e "Tidak mendukung upgrade diri sendiri... "
+    exit 1
 }
 
 function webcore_help() {

@@ -1,0 +1,11 @@
+mpdn https://gitlab.com/webcore2/app-mpdn.git
+admin https://gitlab.com/webcore2/module-mpdn-admin.git
+api https://gitlab.com/webcore2/module-mpdn-api.git
+mpdrp https://gitlab.com/webcore2/app-mpdrp.git
+mpda https://gitlab.com/webcore2/app-mpda.git
+smsd https://gitlab.com/webcore2/module-smsd.git
+indikator https://gitlab.com/webcore2/module-mpdn-indikator.git
+mpdne https://gitlab.com/webcore2/module-mpdn-eksternal.git
+komdat https://gitlab.com/webcore2/module-mpdn-komdat.git
+dhis https://gitlab.com/webcore2/module-mpdn-dhis2.git
+fhir https://gitlab.com/webcore2/module-mpdn-fhir.git
