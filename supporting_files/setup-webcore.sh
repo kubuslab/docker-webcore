@@ -44,6 +44,7 @@ function check_git() {
 function git_clone() {
     local url=$1 dir=$2 pat="$REPOSND@gitlab.com"
     local newurl="${url/gitlab.com/$pat}"
+    echo "PWD: $(pwd)"
     echo "git clone $newurl $dir ..."
     git clone $newurl $dir
 }
@@ -74,14 +75,15 @@ function webcore_init() {
         mkdir -p $APPDIR/lib/webcore-php
         cd $APPDIR/lib/webcore-php
 
+        extdir=$(php-config --extension-dir)
+        echo "Extension Dir: $extdir"
+
         # download extension webcore.so dan copy ke folder extension
         git_clone $PHP_BASE .
-        mkdir -p /usr/local/lib/php/extensions/webcore
-        cp ext/7.4/*.so /usr/local/lib/php/extensions/webcore/
+        cp ext/7.4/webcore-$PHP_VERSION.so $extdir/webcore.so
 
         # Aktifkan extension webcore melalui 92-webcore.ini
-        echo "extension_dir=/usr/local/lib/php/extensions/webcore" > /usr/local/etc/php/conf.d/92-webcore.ini
-        echo "extension=webcore-$PHP_VERSION" >> /usr/local/etc/php/conf.d/92-webcore.ini
+        echo "extension=webcore" >> /usr/local/etc/php/conf.d/92-webcore.ini
 
         # buat directory logging
         mkdir -p $LOGDIR

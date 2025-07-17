@@ -71,5 +71,6 @@ COPY app/info.php $APPDIR/$PROJECT/info.php
 COPY supporting_files/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
+EXPOSE 9000
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["php-fpm"] 
