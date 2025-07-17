@@ -3,7 +3,7 @@ VERSION=0.0.1.3
 ACTION=$1
 APPDIR=${APPDIR:-"/app"}
 PACKAGE_BASE=${PACKAGE_BASE:-"kubuslab/webcore-php:dev-master"}
-GITLAB_PAT=${GITLAB_PAT:-"none"}
+REPOSND=${REPOSND:-"none"}
 PHP_BASE=${PHP_BASE:-"https://gitlab.com/kubuslab/webcore-php.git"}
 REPO_BASE=${REPO_BASE:-"https://gitlab.com/kubuslab/webcore2-base.git"}
 THEME_RES=${THEME_RES:-"https://gitlab.com/webcore/res-clipone.git"}
@@ -42,7 +42,7 @@ function check_git() {
 }
 
 function git_clone() {
-    local url=$1 dir=$2 pat="$GITLAB_PAT@gitlab.com"
+    local url=$1 dir=$2 pat="$REPOSND@gitlab.com"
     local newurl="${url/gitlab.com/$pat}"
     git clone $newurl $dir
 }
