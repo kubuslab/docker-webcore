@@ -127,8 +127,10 @@ function webcore_project() {
             update=1
             [ "$aksi2" == "all" ] && all=1
         elif [ -z "$aksi" ]; then
-            echo "Periksa project $nama ... OK"
-            return
+            if [ $(ls -A "$basedir" | wc -l) -ne 0 ]; then
+                echo "Periksa project $nama ... OK"
+                return
+            fi
         else
             update=2
         fi
@@ -183,6 +185,7 @@ function webcore_project() {
         chown -R www-data:www-data $basedir
 
         echo $project >> $APPDIR/lib/.projects
+        cp -f /etc/$PROJECT/info.php $APPDIR/$PROJECT
     fi
 
     #mkdir -p application/config/domains/localhost
