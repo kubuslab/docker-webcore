@@ -13,7 +13,7 @@ mpdn-prod:
     - PHP_POST_MAX_SIZE=8M
     - APPDIR=/app
     - PROJECT=mpdn
-    - GITLAB_PAT=timkubus:glpat-Wekw2btFSN3GdfbTu216
+    - GITLAB_PAT=EDIT-SENDIRI
     - TIMEZONE=Asia/Jakarta
     - DOMAIN=mpdn.kemkes.go.id
 
