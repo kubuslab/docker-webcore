@@ -2,7 +2,7 @@ mpdn-prod:
   build: .
   dockerfile: ./alpine-fpm/Dockerfile
   environment:
-    - PHP_VERSION=7.4.
+    - PHP_VERSION=7.4.28
     - FPM_PM=dynamic
     - FPM_PM_MAX_CHILDREN=5
     - FPM_PM_START_SERVERS=2

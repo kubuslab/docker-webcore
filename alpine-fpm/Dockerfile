@@ -1,8 +1,8 @@
-FROM FROM php:7.4-fpm-alpine
-MAINTAINER TimKubus <timkubus@gmail.com>
+FROM php:7.4.28-fpm-alpine
 
 # Install system dependencies and PHP extensions
 RUN apk add --no-cache \
+    bash \
     git \
     libzip-dev \
     libmemcached-dev \
@@ -27,14 +27,13 @@ RUN apk add --no-cache \
         gd \
         xml \
     && pecl install memcached \
-    && pecl install memcache \
     && pecl install mcrypt \
     && pecl install apcu \
-    && docker-php-ext-enable memcached memcache mcrypt apcu
+    && docker-php-ext-enable memcached mcrypt apcu
 
 #Environment variables to configure php
-ENV PHP_UPLOAD_MAX_FILESIZE 10M
-ENV PHP_POST_MAX_SIZE 10M
+# ENV PHP_UPLOAD_MAX_FILESIZE 10M
+# ENV PHP_POST_MAX_SIZE 10M
 ENV PHP_VERSION 7.4.28
 ENV APPDIR /app
 ENV PROJECT mpdn
@@ -56,7 +55,7 @@ ENV PROJECT mpdn
 #   echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Prepare for webcore configuration
-COPY supporting_files/domains /etc/$PROJECT/domains
+COPY supporting_files/domains /etc/$PROJECT/domains/
 ADD supporting_files/modules.list /etc/$PROJECT/modules.list
 ADD supporting_files/setup-webcore.sh /usr/local/bin/webcorecli
 RUN chmod 755 /usr/local/bin/webcorecli
@@ -67,6 +66,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Siapkan WORKDIR
 RUN mkdir -p $APPDIR/$PROJECT
 WORKDIR $APPDIR/$PROJECT
+COPY app/info.php $APPDIR/$PROJECT/info.php
 
 COPY supporting_files/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh

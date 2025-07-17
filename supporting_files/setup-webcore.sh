@@ -11,7 +11,7 @@ LOGDIR=${LOGDIR:-"/var/log/webcore"}
 PRIVDIR=${PRIVDIR:-"/webcore/private/files/"}
 PUBDIR=${PUBDIR:-"/webcore/public/files/"}
 TIMEZONE=${TIMEZONE:-"Asia/Jakarta"}
-DOMAIN=${DOMAIN*-"127.0.0.1"}
+DOMAIN=${DOMAIN:-"127.0.0.1"}
 shift
 
 function read_input() {
@@ -44,6 +44,7 @@ function check_git() {
 function git_clone() {
     local url=$1 dir=$2 pat="$REPOSND@gitlab.com"
     local newurl="${url/gitlab.com/$pat}"
+    echo "git clone $newurl $dir ..."
     git clone $newurl $dir
 }
 
@@ -80,7 +81,7 @@ function webcore_init() {
 
         # Aktifkan extension webcore melalui 92-webcore.ini
         echo "extension_dir=/usr/local/lib/php/extensions/webcore" > /usr/local/etc/php/conf.d/92-webcore.ini
-        echo "extension=webcore-$PHP_VERSION.so" >> /usr/local/etc/php/conf.d/92-webcore.ini
+        echo "extension=webcore-$PHP_VERSION" >> /usr/local/etc/php/conf.d/92-webcore.ini
 
         # buat directory logging
         mkdir -p $LOGDIR
@@ -106,7 +107,7 @@ function webcore_init() {
 }
 
 function webcore_prepare() {
-    
+    echo ""
 }
 
 function webcore_project() {
