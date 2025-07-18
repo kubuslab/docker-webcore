@@ -23,7 +23,7 @@ while read -r name url || [[ -n $name ]]; do
   [[ -z "$name" || "$url" =~ ^# ]] && continue
   echo "webcorecli module $PROJECT $name $url"
   webcorecli module "$PROJECT" "$name" "$url"
-done < "/etc/$PROJECT/modules.list"
+done < <(grep -v '^[[:space:]]*$' "/etc/$PROJECT/modules.list")
 
 # Perbaiki config sesuai DOMAIN
 confdir=$APPDIR/$PROJECT/application/config/domains
