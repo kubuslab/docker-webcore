@@ -7,6 +7,7 @@ REPOSND=${REPOSND:-"none"}
 PHP_BASE=${PHP_BASE:-"https://gitlab.com/kubuslab/webcore-php.git"}
 REPO_BASE=${REPO_BASE:-"https://gitlab.com/kubuslab/webcore2-base.git"}
 THEME_RES=${THEME_RES:-"https://gitlab.com/webcore/res-clipone.git"}
+CONFIG_BASE=${CONFIG_BASE:-"https://gitlab.com/docker-setup/config-$PROJECT.git"}
 LOGDIR=${LOGDIR:-"/var/log/webcore"}
 PRIVDIR=${PRIVDIR:-"/webcore/private/files/"}
 PUBDIR=${PUBDIR:-"/webcore/public/files/"}
@@ -301,7 +302,7 @@ function webcore_config() {
         echo "Memuat config untuk domain $DOMAIN di project $project ..."
         mkdir -p $confdir
         cd $confdir
-        git_clone https://gitlab.com/docker-setup/config-$project.git .
+        git_clone $CONFIG_BASE .
         echo "..OK"
 
         # pastikan git berhasil
