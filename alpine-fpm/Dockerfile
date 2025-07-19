@@ -18,6 +18,7 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     libpng-dev \
     libmcrypt-dev \
+    nginx \
     && docker-php-ext-install \
         pdo \
         pdo_mysql \
@@ -53,9 +54,11 @@ RUN mkdir -p $APPDIR/$PROJECT
 WORKDIR $APPDIR/$PROJECT
 COPY app/info.php /etc/$PROJECT/info.php
 
+ADD supporting_files/nginx_default.conf /etc/nginx/conf.d/default.conf
 COPY supporting_files/docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+COPY supporting_files/start-nginx-fpm.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/start-nginx-fpm.sh
 
-EXPOSE 9000
+EXPOSE 80
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["php-fpm"] 
+CMD ["start-nginx-fpm.sh"] 
