@@ -177,7 +177,7 @@ function webcore_project() {
 
         while read -r name version; do
             local package="$name"
-            if [ -n "$version" ];
+            if [ -n "$version" ]; then
                 package="$package:$version"
             fi
 
