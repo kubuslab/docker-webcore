@@ -10,3 +10,5 @@ komdat https://gitlab.com/webcore2/module-mpdn-komdat.git
 dhis https://gitlab.com/webcore2/module-mpdn-dhis2.git
 fhir https://gitlab.com/webcore2/module-mpdn-fhir.git
 response https://gitlab.com/webcore2/module-mpdn-response.git
+acra https://gitlab.com/webcore2/module-acra.git
+fcm https://gitlab.com/webcore2/module-fcm.git

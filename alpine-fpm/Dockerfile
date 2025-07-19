@@ -33,8 +33,6 @@ RUN apk add --no-cache \
     && docker-php-ext-enable memcached mcrypt apcu
 
 #Environment variables to configure php
-# ENV PHP_UPLOAD_MAX_FILESIZE 10M
-# ENV PHP_POST_MAX_SIZE 10M
 ENV PHP_VERSION=7.4.28
 ENV APPDIR=/app
 ENV PROJECT=mpdn

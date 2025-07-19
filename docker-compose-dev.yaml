@@ -12,11 +12,11 @@ services:
       - FPM_SESSION_SAVE_PATH=memcache:11211
       - PHP_UPLOAD_MAX_FILESIZE=8M
       - PHP_POST_MAX_SIZE=8M
-      - APPDIR=/app
-      - PROJECT=mpdn
       - REPOSND=timkubus:glpat-Wekw2btFSN3GdfbTu216
       - TIMEZONE=Asia/Jakarta
       - DOMAIN=mpdn.kemkes.go.id
+      - REPO_BASE=https://gitlab.com/webcore2/main-prop.git
+      - CONFIG_BASE=https://gitlab.com/docker-setup/config-mpdn-kemkes.git
     ports:
       - "9000:9000"
     # volumes:
