@@ -1,0 +1,5 @@
+dompdf/dompdf ^1.0
+php-amqplib/php-amqplib ^3.2
+guzzlehttp/guzzle ^7.4
+kubuslab/mpdn-api ^0.0.1
+altcha-org/altcha ^0.1.4
