@@ -27,4 +27,13 @@ done < "/etc/$PROJECT/modules.list"
 confdir=$APPDIR/$PROJECT/application/config/domains
 cp -rf /etc/$PROJECT/domains/$DOMAIN $confdir
 
+while read -r name version; do
+  local package="$name"
+  if [ -n "$version" ];
+    package="$package:$version"
+  fi
+
+  composer require $package
+done < "/etc/$PROJECT/composer.list"
+
 exec "$@"
