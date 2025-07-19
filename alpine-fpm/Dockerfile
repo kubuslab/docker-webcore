@@ -43,7 +43,7 @@ COPY supporting_files/domains /etc/$PROJECT/domains/
 ADD supporting_files/modules.list /etc/$PROJECT/modules.list
 ADD supporting_files/composer.list /etc/$PROJECT/composer.list
 ADD supporting_files/setup-webcore.sh /usr/local/bin/webcorecli
-ADD supporting_files/www.conf /usr/local/etc/php-fpm.d/www.conf
+ADD supporting_files/www.conf /usr/local/etc/php-fpm.d/docker.conf
 RUN chmod 755 /usr/local/bin/webcorecli
 
 # Install Composer
@@ -54,7 +54,7 @@ RUN mkdir -p $APPDIR/$PROJECT
 WORKDIR $APPDIR/$PROJECT
 COPY app/info.php /etc/$PROJECT/info.php
 
-ADD supporting_files/nginx_default.conf /etc/nginx/conf.d/default.conf
+ADD supporting_files/nginx_default.conf /etc/nginx/http.d/default.conf
 COPY supporting_files/docker-entrypoint.sh /usr/local/bin/
 COPY supporting_files/start-nginx-fpm.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/start-nginx-fpm.sh
