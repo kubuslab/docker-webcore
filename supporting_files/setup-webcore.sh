@@ -167,6 +167,7 @@ function webcore_project() {
         mkdir -p $basedir
         cd $basedir
         git_clone $REPO_BASE .
+        git config --global --add safe.directory $APPDIR/$PROJECT
 
         # Install package composer 
         composer install
