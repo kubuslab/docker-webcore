@@ -172,7 +172,18 @@ function webcore_project() {
         composer install
 
         echo "  -> Siapkan paket library utama.."
+        echo "     + $PACKAGE_BASE"
         composer require $PACKAGE_BASE
+
+        while read -r name version; do
+            local package="$name"
+            if [ -n "$version" ];
+                package="$package:$version"
+            fi
+
+            echo "     + $package"
+            composer require $package
+        done < "/etc/$PROJECT/composer.list"
 
         echo "  -> Siapkan resource theme default.."
         mkdir -p $basedir/resources
