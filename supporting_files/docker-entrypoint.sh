@@ -16,12 +16,14 @@ cat /usr/local/etc/php-fpm.d/www.conf
 webcorecli project $PROJECT
 webcorecli config $PROJECT
 webcorecli theme $PROJECT dore
-while read -r name url; do
+
+# tambahkan `|| [[ -n $name ]]` agar membaca baris terakhir dari modules.list, tanpa itu baris terkahir tidak akan terbaca jika file tidak diahiri dengan baris kosong
+while read -r name url || [[ -n $name ]]; do
   # Lewati baris kosong atau baris yang diawali dengan #
   [[ -z "$name" || "$url" =~ ^# ]] && continue
   echo "webcorecli module $PROJECT $name $url"
   webcorecli module "$PROJECT" "$name" "$url"
-done < "/etc/$PROJECT/modules.list"
+done < <(grep -v '^[[:space:]]*$' "/etc/$PROJECT/modules.list")
 
 # Perbaiki config sesuai DOMAIN
 confdir=$APPDIR/$PROJECT/application/config/domains
