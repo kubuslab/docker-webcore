@@ -46,7 +46,7 @@ COPY supporting_files/domains /etc/$PROJECT/domains/
 ADD supporting_files/modules.list /etc/$PROJECT/modules.list
 ADD supporting_files/composer.list /etc/$PROJECT/composer.list
 ADD supporting_files/setup-webcore.sh /usr/local/bin/webcorecli
-ADD supporting_files/www.conf /usr/local/etc/php-fpm.d/www.conf
+ADD supporting_files/www.conf /usr/local/etc/php-fpm.d/docker.conf
 RUN chmod 755 /usr/local/bin/webcorecli
 
 # Install Composer
