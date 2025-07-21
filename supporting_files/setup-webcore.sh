@@ -228,6 +228,7 @@ function webcore_module() {
         echo "Project $project module $module ... OK"
         echo "  -> Update module $module.."
         cd $moddir
+        git config --global --add safe.directory $moddir
         git pull
     else
         if [ -z "$url" ]; then
@@ -309,6 +310,7 @@ function webcore_config() {
         echo "Project $project config untuk domain $DOMAIN ... OK"
         echo "  -> Update config .."
         cd $confdir
+        git config --global --add safe.directory $confdir
         git pull
     else
         echo "Memuat config untuk domain $DOMAIN di project $project ..."

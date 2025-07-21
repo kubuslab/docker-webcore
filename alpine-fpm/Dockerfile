@@ -38,6 +38,9 @@ ENV PHP_VERSION=7.4.28
 ENV APPDIR=/app
 ENV PROJECT=mpdn
 
+# Hapus file /usr/local/etc/php-fpm.d/zz-docker.conf
+RUN rm -f /usr/local/etc/php-fpm.d/zz-docker.conf
+
 # Prepare for webcore configuration
 COPY supporting_files/domains /etc/$PROJECT/domains/
 ADD supporting_files/modules.list /etc/$PROJECT/modules.list
@@ -54,7 +57,7 @@ RUN mkdir -p $APPDIR/$PROJECT
 WORKDIR $APPDIR/$PROJECT
 COPY app/info.php /etc/$PROJECT/info.php
 
-ADD supporting_files/nginx_default.conf /etc/nginx/conf.d/default.conf
+ADD supporting_files/nginx_default.conf /etc/nginx/http.d/default.conf
 COPY supporting_files/docker-entrypoint.sh /usr/local/bin/
 COPY supporting_files/start-nginx-fpm.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/start-nginx-fpm.sh
