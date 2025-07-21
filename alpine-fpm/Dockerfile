@@ -38,6 +38,9 @@ ENV PHP_VERSION=7.4.28
 ENV APPDIR=/app
 ENV PROJECT=mpdn
 
+# Hapus file /usr/local/etc/php-fpm.d/zz-docker.conf
+RUN rm -f /usr/local/etc/php-fpm.d/zz-docker.conf
+
 # Prepare for webcore configuration
 COPY supporting_files/domains /etc/$PROJECT/domains/
 ADD supporting_files/modules.list /etc/$PROJECT/modules.list
