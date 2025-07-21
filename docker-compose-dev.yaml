@@ -1,9 +1,12 @@
 services:
-  backend:
-    image: mpdn:fpm-latest
-    container_name: backend
+  web:
+    image: mpdn-fpm
+    # build:
+    #   context: .
+    #   dockerfile: ./alpine-fpm/Dockerfile
+    container_name: web
+    platform: linux/amd64
     environment:
-      - PHP_VERSION=7.4.28
       - FPM_PM=dynamic
       - FPM_PM_MAX_CHILDREN=5
       - FPM_PM_START_SERVERS=2
@@ -12,33 +15,20 @@ services:
       - FPM_SESSION_SAVE_PATH=memcache:11211
       - PHP_UPLOAD_MAX_FILESIZE=8M
       - PHP_POST_MAX_SIZE=8M
-      - APPDIR=/app
-      - PROJECT=mpdn
       - REPOSND=timkubus:glpat-Wekw2btFSN3GdfbTu216
       - TIMEZONE=Asia/Jakarta
       - DOMAIN=mpdn.kemkes.go.id
+      - REPO_BASE=https://gitlab.com/webcore2/main-prod.git
+      - CONFIG_BASE=https://gitlab.com/docker-setup/config-mpdn-kemkes.git
     ports:
-      - "9000:9000"
-    # volumes:
-    #   - ./app:/var/www/html
+      - "80:80"
     networks:
       - webcore-net
-    # depends_on:
-    #   - mysql
-  
-  frontend:
-    image: nginx
-    container_name: frontend
-    ports:
-      - "8080:80"
     volumes:
-      # - ./app:/var/www/html:ro
-      - ./supporting_files/nginx_default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./mount/web:/app/mpdn
     depends_on:
-      - backend
-    networks:
-      - webcore-net
-
+      - memcache
+      - database
   
   memcache:
     image: memcached:latest
@@ -48,23 +38,20 @@ services:
     networks:
      - webcore-net
 
-  # mysql:
-  #   image: mysql:8.0
-  #   container_name: mysql
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: rootpassword
-  #     MYSQL_DATABASE: webcore
-  #     MYSQL_USER: webcore
-  #     MYSQL_PASSWORD: webcorepassword
-  #   ports:
-  #     - "3306:3306"
-  #   networks:
-  #     - webcore-net
-  #   volumes:
-  #     - mysql-data:/var/lib/mysql
-
-# volumes:
-#   mysql-data:
+  database:
+    image: mariadb:10.4
+    container_name: database
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: webcore
+      MYSQL_USER: webcore
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    networks:
+      - webcore-net
+    volumes:
+      - ./mount/data:/var/lib/mysql
 
 networks:
   webcore-net:
