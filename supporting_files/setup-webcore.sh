@@ -45,9 +45,13 @@ function check_git() {
 function git_clone() {
     local url=$1 dir=$2 pat="$REPOSND@gitlab.com"
     local newurl="${url/gitlab.com/$pat}"
+    
+    # Pindah ke directori target
+    cd $dir
     echo "PWD: $(pwd)"
     echo "git clone $newurl $dir ..."
-    git clone $newurl $dir
+    git clone $newurl .
+    git config --global --add safe.directory $dir
 }
 
 function webcore_init() {
@@ -74,13 +78,14 @@ function webcore_init() {
         echo "  -> Setup Environment.."
         # siapkan folder lib
         mkdir -p $APPDIR/lib/webcore-php
-        cd $APPDIR/lib/webcore-php
+
+        # download extension webcore.so dan copy ke folder extension
+        # cd $APPDIR/lib/webcore-php
+        git_clone $PHP_BASE $APPDIR/lib/webcore-php
+        # git config --global --add safe.directory $APPDIR/lib/webcore-php
 
         extdir=$(php-config --extension-dir)
         echo "Extension Dir: $extdir"
-
-        # download extension webcore.so dan copy ke folder extension
-        git_clone $PHP_BASE .
         cp ext/7.4/webcore-$PHP_VERSION.so $extdir/webcore.so
 
         # Aktifkan extension webcore melalui 92-webcore.ini
@@ -165,9 +170,9 @@ function webcore_project() {
         fi
     elif [ $update -eq 0 ]; then
         mkdir -p $basedir
-        cd $basedir
-        git_clone $REPO_BASE .
-        git config --global --add safe.directory $APPDIR/$PROJECT
+        # cd $basedir
+        git_clone $REPO_BASE $basedir
+        # git config --global --add safe.directory $basedir
 
         # Install package composer 
         composer install
@@ -188,8 +193,9 @@ function webcore_project() {
 
         echo "  -> Siapkan resource theme default.."
         mkdir -p $basedir/resources
-        cd $basedir/resources
-        git_clone $THEME_RES .
+        # cd $basedir/resources
+        git_clone $THEME_RES $basedir/resources
+        # git config --global --add safe.directory $basedir/resources
 
         echo "  -> Siapkan directory log di $LOGDIR/$nama .."
         mkdir -p $LOGDIR/$nama
@@ -228,7 +234,6 @@ function webcore_module() {
         echo "Project $project module $module ... OK"
         echo "  -> Update module $module.."
         cd $moddir
-        git config --global --add safe.directory $moddir
         git pull
     else
         if [ -z "$url" ]; then
@@ -238,9 +243,10 @@ function webcore_module() {
 
         echo "Memuat module $module di project $project ..."
         mkdir -p $moddir
-        cd $moddir
 
-        git_clone $url .
+        # cd $moddir
+        git_clone $url $moddir
+        # git config --global --add safe.directory $moddir
 
         echo $module >> $APPDIR/lib/.$project.modules
 
@@ -269,8 +275,10 @@ function webcore_theme() {
     else
         echo "Memuat Theme::Engine $theme di project $project ..."
         mkdir -p $themedir
-        cd $themedir
-        git_clone https://gitlab.com/webcore/theme-$theme.git .
+        
+        # cd $themedir
+        git_clone https://gitlab.com/webcore/theme-$theme.git $themedir
+        # git config --global --add safe.directory $themedir
         echo "..OK"
 
         echo "************************************************************************"
@@ -290,8 +298,10 @@ function webcore_theme() {
     else
         echo "Memuat Theme::Resources $theme di project $project ..."
         mkdir -p $resdir
-        cd $resdir
-        git_clone https://gitlab.com/webcore/res-$theme.git .
+        
+        # cd $resdir
+        git_clone https://gitlab.com/webcore/res-$theme.git $resdir
+        # git config --global --add safe.directory $resdir
 
         echo  $theme >> $APPDIR/lib/.$project.themes
 
@@ -310,13 +320,14 @@ function webcore_config() {
         echo "Project $project config untuk domain $DOMAIN ... OK"
         echo "  -> Update config .."
         cd $confdir
-        git config --global --add safe.directory $confdir
         git pull
     else
         echo "Memuat config untuk domain $DOMAIN di project $project ..."
         mkdir -p $confdir
-        cd $confdir
-        git_clone $CONFIG_BASE .
+        
+        # cd $confdir
+        git_clone $CONFIG_BASE $confdir
+        # git config --global --add safe.directory $confdir
         echo "..OK"
 
         # pastikan git berhasil
