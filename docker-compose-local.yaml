@@ -1,10 +1,10 @@
 services:
-  backend:
+  web:
     platform: linux/amd64
     build:
       context: .
       dockerfile: ./alpine-fpm/Dockerfile
-    container_name: backend
+    container_name: web
     environment:
       - PHP_VERSION=7.4.28
       - FPM_PM=dynamic
@@ -12,7 +12,7 @@ services:
       - FPM_PM_START_SERVERS=2
       - FPM_PM_MIN_SPARE_SERVERS=1
       - FPM_PM_MAX_SPARE_SERVERS=3
-      - FPM_SESSION_SAVE_PATH=tcp://memcache:11211?persistent=1&weight=1&timeout=1&retry_interval=15
+      - FPM_SESSION_SAVE_PATH=tcp://memcache:11211
       - PHP_UPLOAD_MAX_FILESIZE=8M
       - PHP_POST_MAX_SIZE=8M
       - APPDIR=/app
@@ -23,49 +23,36 @@ services:
       - REPO_BASE=https://gitlab.com/webcore2/main-prod.git
       - CONFIG_BASE=https://gitlab.com/docker-setup/config-mpdn-kemkes.git
       - APP_BASEURL=https://mpdn.kemkes.appgo.my.id
-      - APP_DATABASE_HOST=mysql
+      - APP_DATABASE_HOST=db
       - APP_DATABASE_USERNAME=webcore
       - APP_DATABASE_PASSWORD=webcorepassword
       - APP_DATABASE_NAME=mpdn
       - APP_RABBITMQ_HOST=rabbitmq
-      - APP_MEMCACHE_HOST=memcached
+      - APP_MEMCACHE_HOST=memcache
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - ./mpdn_files:/app/mpdn
-      - ./ssl/mpdn.kemkes.appgo.my.id.crt:/etc/ssl/certs/mpdn.kemkes.appgo.my.id.crt:ro
-      - ./ssl/mpdn.kemkes.appgo.my.id.key:/etc/ssl/private/mpdn.kemkes.appgo.my.id.key:ro
+    # volumes:
+    #   - ./mpdn_files:/app/mpdn
+    #   - ./ssl/mpdn.kemkes.appgo.my.id.crt:/etc/ssl/certs/mpdn.kemkes.appgo.my.id.crt:ro
+    #   - ./ssl/mpdn.kemkes.appgo.my.id.key:/etc/ssl/private/mpdn.kemkes.appgo.my.id.key:ro
     # networks:
     #   - webcore-net
-    # depends_on:
-    #   - mysql
+    depends_on:
+      - db
+      - memcache
   
-  # frontend:
-  #   image: nginx
-  #   container_name: nginx
-  #   ports:
-  #     - "8080:80"
-  #   volumes:
-  #     - ./mpdn_files:/app/mpdn:ro
-  #     - ./supporting_files/nginx_default.conf:/etc/nginx/conf.d/default.conf:ro
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - webcore-net
-
-  
-  memcached:
+  memcache:
     image: memcached:latest
-    container_name: memcached
+    container_name: memcache
     ports:
       - "11211:11211"
   #   networks:
   #     - webcore-net
 
-  mysql:
+  db:
     image: mysql:8.0
-    container_name: mysql
+    container_name: db
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: mpdn
@@ -79,14 +66,14 @@ services:
     #   - webcore-net
     volumes:
       - ./mysql-data:/var/lib/mysql
-      - ./db/mpdn.sql:/etc/db/mpdn.sql
+      # - ./db/mpdn.sql:/etc/db/mpdn.sql
 
-  phpmyadmin:
+  dbamin:
     image: phpmyadmin/phpmyadmin:latest
     platform: linux/amd64
-    container_name: phpmyadmin
+    container_name: dbadmin
     depends_on:
-      - mysql
+      - db
     environment:
       PMA_HOST: mysql
       MYSQL_ROOT_PASSWORD: rootpassword
