@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "DEBUG: Environment Variables"
-printenv
+# echo "DEBUG: Environment Variables"
+# printenv
 
 set -e
 

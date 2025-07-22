@@ -13,6 +13,7 @@ PRIVDIR=${PRIVDIR:-"/webcore/private/files/"}
 PUBDIR=${PUBDIR:-"/webcore/public/files/"}
 TIMEZONE=${TIMEZONE:-"Asia/Jakarta"}
 DOMAIN=${DOMAIN:-"127.0.0.1"}
+DOMAINS=()
 shift
 
 function read_input() {
@@ -112,6 +113,15 @@ function webcore_init() {
     fi
 
     touch $APPDIR/lib/.installed
+
+    # Handle multi-domain
+    if [ ${#DOMAINS[@]} -eq 0 ]; then
+        OLDIFS=$IFS
+        IFS=';' read -r -a DOMAINS <<< "$DOMAIN"
+        # Index-0 menjadi DOMAIN
+        DOMAIN=${DOMAINS[0]}
+        IFS=$OLDIFS
+    fi
 }
 
 function webcore_prepare() {
@@ -335,6 +345,18 @@ function webcore_config() {
             echo "  -> Backup config localhost dan buat symlink ke $DOMAIN"
             mv -f $domaindir/localhost $domaindir/localhost.backup
             ln -sf $confdir $domaindir/localhost
+
+            for i in "${!DOMAINS[@]}"; do
+                # Domain index-0 sudah diskip karena sudah menjadi default DOMAIN
+                if [ $i -eq 0 ]; then
+                    continue
+                fi
+
+                local confdir2=$domaindir/${DOMAINS[$i]}
+                echo " -> Symlink ke domain $confdir2"
+                ln -sf $confdir $confdir2
+            done
+
             echo "..OK"
         else
             echo "  WARNING: config-$project tidak tersedia di Repository!!!"
