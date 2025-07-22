@@ -41,7 +41,6 @@ ENV PROJECT=mpdn
 # Prepare for webcore configuration
 COPY supporting_files/app /etc/$PROJECT
 COPY supporting_files/bin/* /usr/local/bin/
-COPY supporting_files/conf/www.conf /usr/local/etc/php-fpm.d/docker.conf
 COPY supporting_files/conf/nginx_default.conf /etc/nginx/http.d/default.conf
 
 # Siapkan WORKDIR
@@ -49,12 +48,11 @@ COPY supporting_files/conf/nginx_default.conf /etc/nginx/http.d/default.conf
 # Hapus file /usr/local/etc/php-fpm.d/zz-docker.conf
 RUN mkdir -p $APPDIR/$PROJECT; \
     rm -f /usr/local/etc/php-fpm.d/zz-docker.conf; \
-    chmod 755 /usr/local/bin/webcorecli; \
-    chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/start-nginx-fpm.sh; \
+    chmod +x /usr/local/bin/webcorecli /usr/local/bin/docker-entrypoint.sh /usr/local/bin/start-nginx-fpm.sh; \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 WORKDIR $APPDIR/$PROJECT
 
 EXPOSE 80
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["start-nginx-fpm.sh"] 
+CMD ["start-nginx-fpm.sh"]

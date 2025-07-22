@@ -5,10 +5,14 @@ printenv
 
 set -e
 
-echo "Original /usr/local/etc/php-fpm.d/www.conf"
+echo "Original /usr/local/etc/php-fpm.d/"
+# ls -la /usr/local/etc/php-fpm.d/
+echo "Bersihkan /usr/local/etc/php-fpm.d/ dan timpa dengan fresh copy"
+rm -vf /usr/local/etc/php-fpm.d/*
+cp /etc/$PROJECT/www.conf /usr/local/etc/php-fpm.d/
 
 if [ -n "$FPM_SESSION_SAVE_PATH" ]; then
-    echo -e ";php_value[session.save_handler] = memcached\n;php_value[session.save_path] = $FPM_SESSION_SAVE_PATH" >> /usr/local/etc/php-fpm.d/www.conf
+    echo -e "php_value[session.save_handler] = memcached\nphp_value[session.save_path] = $FPM_SESSION_SAVE_PATH" >> /usr/local/etc/php-fpm.d/www.conf
 fi
 
 cat /usr/local/etc/php-fpm.d/www.conf
