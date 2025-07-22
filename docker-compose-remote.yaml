@@ -1,0 +1,70 @@
+services:
+  web:
+    image: kubuslab/webcore-mpdn:latest
+    container_name: web
+    environment:
+      - PHP_VERSION=7.4.28
+      - FPM_PM=dynamic
+      - FPM_PM_MAX_CHILDREN=5
+      - FPM_PM_START_SERVERS=2
+      - FPM_PM_MIN_SPARE_SERVERS=1
+      - FPM_PM_MAX_SPARE_SERVERS=3
+      - FPM_SESSION_SAVE_PATH=tcp://memcache:11211
+      - PHP_UPLOAD_MAX_FILESIZE=8M
+      - PHP_POST_MAX_SIZE=8M
+      - APPDIR=/app
+      - PROJECT=mpdn
+      - REPOSND=timkubus:glpat-Wekw2btFSN3GdfbTu216
+      - TIMEZONE=Asia/Jakarta
+      # - DOMAIN=mpdn.kemkes.go.id
+      - REPO_BASE=https://gitlab.com/webcore2/main-prod.git
+      - CONFIG_BASE=https://gitlab.com/docker-setup/config-mpdn-kemkes.git
+      # - APP_BASEURL=https://mpdn.kemkes.appgo.my.id
+      - APP_BASEURL=http://localhost
+      - APP_DATABASE_HOST=db
+      - APP_DATABASE_USERNAME=webcore
+      - APP_DATABASE_PASSWORD=webcorepassword
+      - APP_DATABASE_NAME=mpdn
+      - APP_RABBITMQ_HOST=rabbitmq
+      - APP_MEMCACHE_HOST=memcache
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+      - memcache
+  
+  memcache:
+    image: memcached:latest
+    container_name: memcache
+    ports:
+      - "11211:11211"
+
+  db:
+    image: mysql:8.0
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mpdn
+      MYSQL_USER: webcore
+      MYSQL_PASSWORD: webcorepassword
+      MYSQL_MODE: ""
+    command: --sql-mode=""
+    ports:
+      - "3306:3306"
+    # volumes:
+    #   - ./mount/data:/var/lib/mysql
+
+  dbamin:
+    image: phpmyadmin/phpmyadmin:latest
+    platform: linux/amd64
+    container_name: dbadmin
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mpdn
+      MYSQL_USER: webcore
+      MYSQL_PASSWORD: webcorepassword
+    ports:
+      - "8081:80" 
