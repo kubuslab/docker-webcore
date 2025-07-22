@@ -16,7 +16,7 @@ services:
       - PROJECT=mpdn
       - REPOSND=timkubus:glpat-Wekw2btFSN3GdfbTu216
       - TIMEZONE=Asia/Jakarta
-      # - DOMAIN=mpdn.kemkes.go.id
+      - DOMAIN=mpdn.kemkes.go.id;mpdn.kemkes.kubuslab.id;mpdn.appgo.my.id
       - REPO_BASE=https://gitlab.com/webcore2/main-prod.git
       - CONFIG_BASE=https://gitlab.com/docker-setup/config-mpdn-kemkes.git
       # - APP_BASEURL=https://mpdn.kemkes.appgo.my.id
