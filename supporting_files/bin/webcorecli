@@ -49,7 +49,7 @@ function git_clone() {
     # Pindah ke directori target
     cd $dir
     echo "PWD: $(pwd)"
-    echo "git clone $newurl $dir ..."
+    echo "git clone $url $dir ..."
     git clone $newurl .
     git config --global --add safe.directory $dir
 }
