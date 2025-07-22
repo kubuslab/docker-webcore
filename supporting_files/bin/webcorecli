@@ -56,6 +56,17 @@ function git_clone() {
 }
 
 function webcore_init() {
+    # Handle multi-domain
+    # echo "DOMAINS Awal: ${DOMAINS[*]}"
+    if [ ${#DOMAINS[@]} -eq 0 ]; then
+        OLDIFS=$IFS
+        IFS=';' read -r -a DOMAINS <<< "$DOMAIN"
+        # Index-0 menjadi DOMAIN
+        DOMAIN=${DOMAINS[0]}
+        IFS=$OLDIFS
+    fi
+    # echo "DOMAINS Akhir: ${DOMAINS[*]} - $DOMAIN"
+
     if [ "$ACTION" == "update-lib" ]; then
         rm -f $APPDIR/lib/.installed
     elif [ "$ACTION" == "reset" ]; then
@@ -113,15 +124,6 @@ function webcore_init() {
     fi
 
     touch $APPDIR/lib/.installed
-
-    # Handle multi-domain
-    if [ ${#DOMAINS[@]} -eq 0 ]; then
-        OLDIFS=$IFS
-        IFS=';' read -r -a DOMAINS <<< "$DOMAIN"
-        # Index-0 menjadi DOMAIN
-        DOMAIN=${DOMAINS[0]}
-        IFS=$OLDIFS
-    fi
 }
 
 function webcore_prepare() {

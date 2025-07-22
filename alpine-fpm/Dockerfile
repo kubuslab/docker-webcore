@@ -28,6 +28,7 @@ RUN apk add --no-cache \
         mbstring \
         gd \
         xml \
+        sockets \
     && pecl install memcached \
     && pecl install mcrypt \
     && pecl install apcu \
