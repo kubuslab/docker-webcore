@@ -38,28 +38,22 @@ ENV PHP_VERSION=7.4.28
 ENV APPDIR=/app
 ENV PROJECT=mpdn
 
-# Hapus file /usr/local/etc/php-fpm.d/zz-docker.conf
-RUN rm -f /usr/local/etc/php-fpm.d/zz-docker.conf
-
 # Prepare for webcore configuration
-ADD supporting_files/modules.list /etc/$PROJECT/modules.list
-ADD supporting_files/composer.list /etc/$PROJECT/composer.list
-ADD supporting_files/setup-webcore.sh /usr/local/bin/webcorecli
-ADD supporting_files/www.conf /usr/local/etc/php-fpm.d/docker.conf
-RUN chmod 755 /usr/local/bin/webcorecli
-
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+COPY supporting_files/app /etc/$PROJECT
+COPY supporting_files/bin/* /usr/local/bin/
+COPY supporting_files/conf/www.conf /usr/local/etc/php-fpm.d/docker.conf
+COPY supporting_files/conf/nginx_default.conf /etc/nginx/http.d/default.conf
 
 # Siapkan WORKDIR
-RUN mkdir -p $APPDIR/$PROJECT
-WORKDIR $APPDIR/$PROJECT
-COPY app/info.php /etc/$PROJECT/info.php
+# Install Composer
+# Hapus file /usr/local/etc/php-fpm.d/zz-docker.conf
+RUN mkdir -p $APPDIR/$PROJECT; \
+    rm -f /usr/local/etc/php-fpm.d/zz-docker.conf; \
+    chmod 755 /usr/local/bin/webcorecli; \
+    chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/start-nginx-fpm.sh; \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-ADD supporting_files/nginx_default.conf /etc/nginx/http.d/default.conf
-COPY supporting_files/docker-entrypoint.sh /usr/local/bin/
-COPY supporting_files/start-nginx-fpm.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/start-nginx-fpm.sh
+WORKDIR $APPDIR/$PROJECT
 
 EXPOSE 80
 ENTRYPOINT ["docker-entrypoint.sh"]
