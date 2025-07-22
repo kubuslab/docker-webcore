@@ -42,7 +42,6 @@ ENV PROJECT=mpdn
 RUN rm -f /usr/local/etc/php-fpm.d/zz-docker.conf
 
 # Prepare for webcore configuration
-COPY supporting_files/domains /etc/$PROJECT/domains/
 ADD supporting_files/modules.list /etc/$PROJECT/modules.list
 ADD supporting_files/composer.list /etc/$PROJECT/composer.list
 ADD supporting_files/setup-webcore.sh /usr/local/bin/webcorecli
