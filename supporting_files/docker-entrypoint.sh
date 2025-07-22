@@ -25,8 +25,4 @@ while read -r name url || [[ -n $name ]]; do
   webcorecli module "$PROJECT" "$name" "$url"
 done < <(grep -v '^[[:space:]]*$' "/etc/$PROJECT/modules.list")
 
-# Perbaiki config sesuai DOMAIN
-confdir=$APPDIR/$PROJECT/application/config/domains
-cp -rf /etc/$PROJECT/domains/$DOMAIN $confdir
-
 exec "$@"
