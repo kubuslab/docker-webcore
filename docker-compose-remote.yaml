@@ -29,7 +29,7 @@ services:
       - APP_MEMCACHE_HOST=memcache
     ports:
       - "80:80"
-    depends_on:
+    qdepends_on:
       - db
       - memcache
   
