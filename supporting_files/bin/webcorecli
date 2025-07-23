@@ -199,7 +199,7 @@ function webcore_project() {
                 package="$package:$version"
             fi
 
-            echo "     + $package"
+            echo "     + Install package $package"
             composer require $package
         done < "/etc/$PROJECT/composer.list"
 
