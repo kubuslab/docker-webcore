@@ -216,7 +216,9 @@ function webcore_project() {
         chown -R www-data:www-data $basedir
 
         echo $project >> $APPDIR/lib/.projects
-        cp -f /etc/$PROJECT/info.php $APPDIR/$PROJECT
+        if [ "$APPENV" == "development" ]; then
+            cp -f /etc/$PROJECT/info.php $APPDIR/$PROJECT
+        fi
     fi
 
     #mkdir -p application/config/domains/localhost

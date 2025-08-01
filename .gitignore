@@ -3,3 +3,4 @@
 .vscode
 tests/actual
 mount/
+.DS_Store

@@ -38,6 +38,7 @@ RUN apk add --no-cache \
 ENV PHP_VERSION=7.4.28
 ENV APPDIR=/app
 ENV PROJECT=mpdn
+ENV APPENV=production
 
 # Prepare for webcore configuration
 COPY supporting_files/app /etc/$PROJECT
