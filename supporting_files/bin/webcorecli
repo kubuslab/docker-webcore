@@ -219,6 +219,16 @@ function webcore_project() {
         if [ "$APPENV" == "development" ]; then
             cp -f /etc/$PROJECT/info.php $APPDIR/$PROJECT
         fi
+
+        cp -f /etc/$PROJECT/ok.php $APPDIR/$PROJECT
+        while read -r src dst || [[ -n $src ]]; do
+            # Lewati baris kosong atau baris yang diawali dengan #
+            [[ -z "$src" || "$dst" =~ ^# ]] && continue
+            eval "src=$src"
+            eval "dst=$dst"
+            echo "Copy File $src ke $dst"
+            cp -f $src $dst
+        done < <(grep -v '^[[:space:]]*$' "/etc/$PROJECT/copy.list")
     fi
 
     #mkdir -p application/config/domains/localhost

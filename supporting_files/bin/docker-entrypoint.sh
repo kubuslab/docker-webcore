@@ -15,7 +15,7 @@ if [ -n "$FPM_SESSION_SAVE_PATH" ]; then
     echo -e "php_value[session.save_handler] = memcached\nphp_value[session.save_path] = $FPM_SESSION_SAVE_PATH" >> /usr/local/etc/php-fpm.d/www.conf
 fi
 
-cat /usr/local/etc/php-fpm.d/www.conf
+# cat /usr/local/etc/php-fpm.d/www.conf
 
 webcorecli project $PROJECT
 webcorecli config $PROJECT
