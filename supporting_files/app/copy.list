@@ -1,2 +1,3 @@
 /etc/$PROJECT/ok.php $APPDIR/$PROJECT/ok.php
 /etc/$PROJECT/manifest.json $APPDIR/$PROJECT/manifest.json
+/etc/$PROJECT/mpdn $APPDIR/$PROJECT/resources

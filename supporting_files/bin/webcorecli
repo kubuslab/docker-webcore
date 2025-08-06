@@ -227,7 +227,7 @@ function webcore_project() {
             eval "src=$src"
             eval "dst=$dst"
             echo "Copy File $src ke $dst"
-            cp -f $src $dst
+            cp -rf $src $dst
         done < <(grep -v '^[[:space:]]*$' "/etc/$PROJECT/copy.list")
     fi
 

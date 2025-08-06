@@ -1,0 +1,15 @@
+{
+  "applinks": {
+      "apps": [],
+      "details": [
+           {
+             "appID": "3PZ6ZPT3L5.id.kubuslab.mpdn",
+             "paths": [
+                 "NOT /help/*", "NOT /help",
+                 "NOT /about/*", "NOT /about",
+                 "/*"
+             ]
+           }
+       ]
+   }
+}
