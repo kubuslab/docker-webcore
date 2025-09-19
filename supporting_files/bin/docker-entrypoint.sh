@@ -22,11 +22,16 @@ webcorecli config $PROJECT
 webcorecli theme $PROJECT dore
 
 # tambahkan `|| [[ -n $name ]]` agar membaca baris terakhir dari modules.list, tanpa itu baris terkahir tidak akan terbaca jika file tidak diahiri dengan baris kosong
-while read -r name url || [[ -n $name ]]; do
+while read -r name url branch || [[ -n $name ]]; do
   # Lewati baris kosong atau baris yang diawali dengan #
   [[ -z "$name" || "$url" =~ ^# ]] && continue
-  echo "webcorecli module $PROJECT $name $url"
-  webcorecli module "$PROJECT" "$name" "$url"
+  if [ -z "$branch" ]; then
+    echo "webcorecli module $PROJECT $name $url"
+    webcorecli module "$PROJECT" "$name" "$url"
+  else
+    echo "webcorecli module $PROJECT $name $url from branch $branch"
+    webcorecli module "$PROJECT" "$name" "$url" "$branch"
+  fi
 done < <(grep -v '^[[:space:]]*$' "/etc/$PROJECT/modules.list")
 
 exec "$@"

@@ -13,6 +13,8 @@ PRIVDIR=${PRIVDIR:-"/webcore/private/files/"}
 PUBDIR=${PUBDIR:-"/webcore/public/files/"}
 TIMEZONE=${TIMEZONE:-"Asia/Jakarta"}
 DOMAIN=${DOMAIN:-"127.0.0.1"}
+USERGROUP=${USERGROUP:-"nginx:nginx"}
+APPENV=${APPENV}
 DOMAINS=()
 shift
 
@@ -44,14 +46,20 @@ function check_git() {
 }
 
 function git_clone() {
-    local url=$1 dir=$2 pat="$REPOSND@gitlab.com"
+    local url=$1 dir=$2 branch=$3 pat="$REPOSND@gitlab.com"
     local newurl="${url/gitlab.com/$pat}"
     
     # Pindah ke directori target
     cd $dir
     echo "PWD: $(pwd)"
-    echo "git clone $url $dir ..."
-    git clone $newurl .
+    if [ -z "$branch" ]; then
+        echo "git clone $url $dir ..."
+        git clone $newurl .
+    else
+        echo "git clone --branch $branch $url $dir ..."
+        git clone  --branch $branch $newurl .
+    fi
+
     git config --global --add safe.directory $dir
 }
 
@@ -105,15 +113,15 @@ function webcore_init() {
 
         # buat directory logging
         mkdir -p $LOGDIR
-        chown -R www-data:www-data $LOGDIR
+        chown -R $USERGROUP $LOGDIR
 
         # buat directory untuk file private
         mkdir -p $PRIVDIR
-        # chown -R www-data:www-data $PRIVDIR
+        # chown -R $USERGROUP $PRIVDIR
 
         # buat directory untuk file public
         mkdir -p $PUBDIR
-        # chown -R www-data:www-data $PUBDIR
+        # chown -R $USERGROUP $PUBDIR
 
         # Set timezone to $TIMEZONE
         apk add --no-cache tzdata
@@ -211,9 +219,9 @@ function webcore_project() {
 
         echo "  -> Siapkan directory log di $LOGDIR/$nama .."
         mkdir -p $LOGDIR/$nama
-        chown -R www-data:www-data $LOGDIR/$nama
+        chown -R $USERGROUP $LOGDIR/$nama
 
-        chown -R www-data:www-data $basedir
+        chown -R $USERGROUP $basedir
 
         echo $project >> $APPDIR/lib/.projects
         if [ "$APPENV" == "development" ]; then
