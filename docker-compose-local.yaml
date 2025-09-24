@@ -24,12 +24,15 @@ services:
       - CONFIG_BASE=https://gitlab.com/docker-setup/config-mpdn-kemkes.git
       # - APP_BASEURL=https://mpdn.kemkes.appgo.my.id
       - APP_BASEURL=http://localhost
+      - APP_LOG_PATH=php://stdout
       - APP_DATABASE_HOST=db
       - APP_DATABASE_USERNAME=webcore
       - APP_DATABASE_PASSWORD=webcorepassword
       - APP_DATABASE_NAME=mpdn
       - APP_RABBITMQ_HOST=rabbitmq
       - APP_MEMCACHE_HOST=memcache
+      - FITUR_CAPTCHA_LOGIN=TIDAK
+      - USERGROUP=nginx:nginx
     ports:
       - "80:80"
       - "443:443"
@@ -40,7 +43,7 @@ services:
     # networks:
     #   - webcore-net
     depends_on:
-      - db
+      - dbmpdn
       - memcache
   
   memcache:
@@ -51,9 +54,9 @@ services:
   #   networks:
   #     - webcore-net
 
-  db:
+  dbmpdn:
     image: mysql:8.0
-    container_name: db
+    container_name: dbmpdn
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: mpdn
@@ -69,20 +72,20 @@ services:
       # - ./mount/data:/var/lib/mysql
       # - ./db/mpdn.sql:/etc/db/mpdn.sql
 
-  dbamin:
-    image: phpmyadmin/phpmyadmin:latest
-    platform: linux/amd64
-    container_name: dbadmin
-    depends_on:
-      - db
-    environment:
-      PMA_HOST: mysql
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: mpdn
-      MYSQL_USER: webcore
-      MYSQL_PASSWORD: webcorepassword
-    ports:
-      - "8081:80" 
+  # dbamin:
+  #   image: phpmyadmin/phpmyadmin:latest
+  #   platform: linux/amd64
+  #   container_name: dbadmin
+  #   depends_on:
+  #     - db
+  #   environment:
+  #     PMA_HOST: mysql
+  #     MYSQL_ROOT_PASSWORD: rootpassword
+  #     MYSQL_DATABASE: mpdn
+  #     MYSQL_USER: webcore
+  #     MYSQL_PASSWORD: webcorepassword
+  #   ports:
+  #     - "8081:80" 
 
 # volumes:
 #   mpdn_:./data
