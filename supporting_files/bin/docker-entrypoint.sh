@@ -11,6 +11,11 @@ echo "Bersihkan /usr/local/etc/php-fpm.d/ dan timpa dengan fresh copy"
 rm -vf /usr/local/etc/php-fpm.d/*
 cp /etc/$PROJECT/www.conf /usr/local/etc/php-fpm.d/
 
+# Arahkan error_log ke /proc/self/fd/2
+sed -i 's/^;error_log =.*/error_log = \/proc\/self\/\fd\/2/' /usr/local/etc/php-fpm.conf
+# head -n 24 /usr/local/etc/php-fpm.conf | tail -n 6
+echo "Set error_log to /proc/self/fd/2"
+
 if [ -n "$FPM_SESSION_SAVE_PATH" ]; then
     echo -e "php_value[session.save_handler] = memcached\nphp_value[session.save_path] = $FPM_SESSION_SAVE_PATH" >> /usr/local/etc/php-fpm.d/www.conf
 fi
