@@ -245,7 +245,7 @@ function webcore_project() {
 }
 
 function webcore_module() {
-    local project=$1 module=$2 url=$3
+    local project=$1 module=$2 url=$3 branch=$4
     
     if [ -z "$module" ]; then
         echo -e "Nama module harus disebutkan\n"
@@ -273,11 +273,15 @@ function webcore_module() {
             exit
         fi
 
-        echo "Memuat module $module di project $project ..."
+        echo "Memuat module $module branch di project $project ..."
         mkdir -p $moddir
 
         # cd $moddir
-        git_clone $url $moddir
+        if [ -n $branch ]; then
+            git_clone $url $moddir $branch
+        else
+            git_clone $url $moddir
+        fi
         # git config --global --add safe.directory $moddir
 
         echo $module >> $APPDIR/lib/.$project.modules
