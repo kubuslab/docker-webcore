@@ -241,11 +241,17 @@ function webcore_project() {
 
     #mkdir -p application/config/domains/localhost
     
+    # Cek apakah ada folder vendor
+    if [ ! -d "$basedir/application/vendor" ]; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') Error: Folder application/vendor tidak ditemukan"
+        echo Sleep expired >> /dev/termination-log
+        exit 1
+    fi
     echo "..OK"
 }
 
 function webcore_module() {
-    local project=$1 module=$2 url=$3
+    local project=$1 module=$2 url=$3 branch=$4
     
     if [ -z "$module" ]; then
         echo -e "Nama module harus disebutkan\n"
@@ -273,12 +279,23 @@ function webcore_module() {
             exit
         fi
 
-        echo "Memuat module $module di project $project ..."
+        echo "Memuat module $module branch di project $project ..."
         mkdir -p $moddir
-
+    
         # cd $moddir
-        git_clone $url $moddir
+        if [ -n $branch ]; then
+            git_clone $url $moddir $branch
+        else
+            git_clone $url $moddir
+        fi
         # git config --global --add safe.directory $moddir
+
+        # Cek apakah module valid (cek disini karena ini pas membuat module pertama kali/clone)
+        if [ ! -d "$moddir/controllers" ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') Error: Tidak ditemukan folder controllers di dalam $moddir"
+            echo Sleep expired >> /dev/termination-log
+            exit 1
+        fi
 
         echo $module >> $APPDIR/lib/.$project.modules
 
@@ -338,6 +355,38 @@ function webcore_theme() {
         echo  $theme >> $APPDIR/lib/.$project.themes
 
         echo "..OK"
+    fi
+
+    # Cari file .php di dalam application/themes/*
+    # Flag untuk mendeteksi apakah ada theme yang error
+    has_error=false
+
+    # Loop semua folder di application/themes/*
+    for theme_dir in $APPDIR/$project/application/themes/*/; do
+        # Pastikan benar-benar folder
+        [ -d "$theme_dir" ] || continue
+        theme_name=$(basename "$theme_dir")
+        
+        # Cek apakah ada file .php di dalam folder theme ini
+        php_files=$(ls "$theme_dir"/*.php 2>/dev/null)
+        if [ -z "$php_files" ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') Error: Tidak ada file .php di folder $theme_dir"
+            echo Sleep expired >> /dev/termination-log
+            has_error=true
+        elif [ ! -d "$APPDIR/$project/resources/$theme_name" ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') Error: Tidak ada folder $theme_name di $APPDIR/$project/resources"
+            echo Sleep expired >> /dev/termination-log
+            has_error=true
+        elif [ ! -d "$APPDIR/$project/resources/$theme_name/js" ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') Error: Tidak ada folder js di $APPDIR/$project/resources/$theme_name/"
+            echo Sleep expired >> /dev/termination-log
+            has_error=true
+        fi
+    done
+
+    # Jika ada error, keluar dengan status gagal
+    if [ "$has_error" = true ]; then
+        exit 1
     fi
 }
 
